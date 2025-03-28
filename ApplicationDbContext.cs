@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -71,45 +71,35 @@ namespace Demo03.Data
                 NormalizedEmail = "EMPLOYER@GMAIL.COM",
                 EmailConfirmed = true
             };
-            var teacherAccount = new IdentityUser
-            {
-                Id = "user3",
-                UserName = "teacher@gmail.com",
-                Email = "teacher@gmail.com",
-                NormalizedUserName = "TEACHER@GMAIL.COM",
-                NormalizedEmail = "TEACHER@GMAIL.COM",
-                EmailConfirmed = true
-            };
             var hasher = new PasswordHasher<IdentityUser>();
             adminAccount.PasswordHash = hasher.HashPassword(adminAccount, "123456");
             studentAccount.PasswordHash = hasher.HashPassword(studentAccount, "123456");
             employerAccount.PasswordHash = hasher.HashPassword(employerAccount, "123456");
-            teacherAccount.PasswordHash = hasher.HashPassword(teacherAccount, "123456");
-            builder.Entity<IdentityUser>().HasData(adminAccount, studentAccount, employerAccount, teacherAccount);
+            builder.Entity<IdentityUser>().HasData(adminAccount, studentAccount, employerAccount);
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole
                 {
                     Id = "role0",
                     Name = "Adminstator",
                     NormalizedName = "ADMINSTRATOR"
+                    EmailConfirmed = true
+
                 },
                 new IdentityRole
                 {
                     Id = "role1",
                     Name = "Student",
                     NormalizedName = "STUDENT"
+                    EmailConfirmed = true
+
                 },
                 new IdentityRole
                 {
                     Id = "role2",
                     Name = "Employer",
                     NormalizedName = "EMPLOYER"
-                },
-                new IdentityRole
-                {
-                    Id = "role3",
-                    Name = "Teacher",
-                    NormalizedName = "TEACHER"
+                    EmailConfirmed = true
+
                 });
             builder.Entity<IdentityUserRole<string>>().HasData(
                 new IdentityUserRole<string>
@@ -126,11 +116,6 @@ namespace Demo03.Data
                 {
                     UserId = "user2",
                     RoleId = "role2"
-                },
-                new IdentityUserRole<string>
-                {
-                    UserId = "user3",
-                    RoleId = "role3"
                 }
             );
         }

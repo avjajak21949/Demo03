@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,9 +31,10 @@ namespace Demo03
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>() // Add this line to include roles
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
-           services.AddRazorPages();
+            services.AddRazorPages();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,6 +66,50 @@ namespace Demo03
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
             });
+        }
+        private async Task SeedAdminUser(IApplicationBuilder app)
+        {
+            using (var serviceScope = app.ApplicationServices.CreateScope())
+            {
+                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                // Thông tin tài khoản admin cần thêm
+                var adminEmail = "admin@gmail.com";
+                var adminPassword = "Anderson210402@";
+
+                // Kiểm tra xem tài khoản admin đã tồn tại chưa
+                var adminUser = await userManager.FindByEmailAsync(adminEmail);
+                if (adminUser == null)
+                {
+                    // Tạo tài khoản admin
+                    var newAdmin = new IdentityUser
+                    {
+                        Id = "+a6s2da+s62da+s62da+s62da+s6d2as+6d2s+3fdg2+",
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        NormalizedUserName = adminEmail.ToUpper(),
+                        NormalizedEmail = adminEmail.ToUpper(),
+                        EmailConfirmed = true // Nếu bạn muốn xác nhận email
+                    };
+
+                    // Thay đổi password nếu cần
+                    var createAdminResult = await userManager.CreateAsync(newAdmin, adminPassword);
+
+                    if (createAdminResult.Succeeded)
+                    {
+                        // Gán vai trò admin cho tài khoản
+                        await userManager.AddToRoleAsync(newAdmin, "Adminstator");
+                    }
+                    else
+                    {
+                        // Xử lý lỗi nếu có
+                        var errors = string.Join(", ", createAdminResult.Errors.Select(e => e.Description));
+                        throw new Exception($"Failed to create admin user: {errors}");
+                    }
+                }
+            }
+
         }
     }
 }
