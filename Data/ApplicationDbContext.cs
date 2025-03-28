@@ -40,6 +40,11 @@ namespace Demo03.Data
                 .HasOne(co => co.Category)
                 .WithMany(cat => cat.Course)
                 .HasForeignKey(co => co.CategoryID);
+                modelBuilder.Entity<Schedule>()
+        .HasOne(s => s.Class)
+        .WithMany(c => c.Schedules)
+        .HasForeignKey(s => s.ClassID)
+        .OnDelete(DeleteBehavior.Cascade);
         }
 
         private void SeedUserRole(ModelBuilder builder)
@@ -119,5 +124,6 @@ namespace Demo03.Data
         public DbSet<Demo03.Models.Course> Course { get; set; }
         public DbSet<Demo03.Models.StudentClass> StudentClass { get; set; }
         public DbSet<Demo03.Models.StudentEnrollment> StudentEnrollment { get; set; }
+        public DbSet<Demo03.Models.Schedule> Schedule { get; set; }
     }
 }
