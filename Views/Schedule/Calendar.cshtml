@@ -1,0 +1,98 @@
+@model IEnumerable<Demo03.Models.Schedule>
+
+@{
+    ViewData["Title"] = "Schedule Calendar";
+}
+
+<h1>Schedule Calendar</h1>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css">
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: [
+                    @foreach (var schedule in Model)
+                    {
+                        var days = schedule.DaysOfWeek.Split(',');
+                        foreach (var day in days)
+                        {
+                            <text>
+                            {
+                                title: '@schedule.Class.Name',
+                                startRecur: '@schedule.StartDate.ToString("yyyy-MM-dd")',
+                                endRecur: '@schedule.EndDate.ToString("yyyy-MM-dd")',
+                                daysOfWeek: [@GetDayNumber(day)],
+                                startTime: '@schedule.StartTime.ToString(@"hh\:mm")',
+                                endTime: '@schedule.EndTime.ToString(@"hh\:mm")',
+                                url: '@Url.Action("Details", "Schedule", new { id = schedule.ScheduleID })',
+                                backgroundColor: getRandomColor(),
+                                borderColor: getRandomColor(),
+                                description: '@schedule.Location'
+                            },
+                            </text>
+                        }
+                    }
+                ],
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                        return false;
+                    }
+                },
+                eventDidMount: function(info) {
+                    $(info.el).tooltip({
+                        title: info.event.extendedProps.description,
+                        placement: 'top',
+                        trigger: 'hover',
+                        container: 'body'
+                    });
+                }
+            });
+            calendar.render();
+            
+            function getRandomColor() {
+                var letters = '0123456789ABCDEF';
+                var color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+        });
+        
+        @functions {
+            public int GetDayNumber(string day)
+            {
+                switch (day)
+                {
+                    case "Sun": return 0;
+                    case "Mon": return 1;
+                    case "Tue": return 2;
+                    case "Wed": return 3;
+                    case "Thu": return 4;
+                    case "Fri": return 5;
+                    case "Sat": return 6;
+                    default: return 0;
+                }
+            }
+        }
+    </script>
+}

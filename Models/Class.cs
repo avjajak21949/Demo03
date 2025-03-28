@@ -11,5 +11,12 @@ namespace Demo03.Models
         public string ScheduleInfo { get; set; }
         public int MaxCapacity { get; set; } = 30;
         public ICollection<StudentClass> StudentClasses { get; set; }
+        public virtual ICollection<Schedule> Schedules { get; set; }
     }
 }
+public Class()
+{
+    StudentClasses = new HashSet<StudentClass>();
+    Schedules = new HashSet<Schedule>();
+}
+

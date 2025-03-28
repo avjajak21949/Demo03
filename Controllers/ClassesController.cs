@@ -27,23 +27,26 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Details/5
+        // Update the Details action method in ClassesController
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var @class = await _context.Class
-                .Include(c => c.Course)
-                .FirstOrDefaultAsync(m => m.ClassID == id);
-            if (@class == null)
-            {
-                return NotFound();
-            }
-
-            return View(@class);
+         if (id == null)
+        {
+        return NotFound();
         }
+
+        var @class = await _context.Class
+        .Include(c => c.Course)
+        .Include(c => c.Schedules)  // Include related schedules
+        .FirstOrDefaultAsync(m => m.ClassID == id);
+        
+        if (@class == null)
+        {
+        return NotFound();
+        }
+
+    return View(@class);
+}   
 
         // GET: Classes/Create
         public IActionResult Create()
