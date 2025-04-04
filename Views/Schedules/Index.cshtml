@@ -1,45 +1,164 @@
 @model IEnumerable<Demo03.Models.Schedule>
 
 @{
-    ViewData["Title"] = "Schedules";
+    ViewData["Title"] = "Class Schedule";
 }
 
-<h1>Schedules</h1>
+<div class="container schedule-container">
+    <div class="schedule-header">
+        <h2>@ViewData["Title"]</h2>
+        <a asp-action="Create" class="btn btn-add">
+            <i class="fas fa-plus"></i> Add New Schedule
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New Schedule</a>
-    <a asp-action="Calendar" class="btn btn-info">View Calendar</a>
-</p>
+    <div class="schedule-table-container">
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Time</th>
+                    <th>Days</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@(item.Class?.Name ?? "N/A")</td>
+                        <td>@item.StartDate.ToString("MM/dd/yyyy")</td>
+                        <td>@item.EndDate.ToString("MM/dd/yyyy")</td>
+                        <td>@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</td>
+                        <td>@item.DaysOfWeek</td>
+                        <td>@item.Location</td>
+                        <td class="action-buttons">
+                            <a asp-action="Edit" asp-route-id="@item.ScheduleID" class="btn-edit" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a asp-action="Details" asp-route-id="@item.ScheduleID" class="btn-details" title="Details">
+                                <i class="fas fa-info-circle"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.ScheduleID" class="btn-delete" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Class</th>
-            <th>Course</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Days</th>
-            <th>Time</th>
-            <th>Location</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>@item.Class.Name</td>
-            <td>@item.Class.Course.Title</td>
-            <td>@item.StartDate.ToShortDateString()</td>
-            <td>@item.EndDate.ToShortDateString()</td>
-            <td>@item.DaysOfWeek</td>
-            <td>@item.StartTime.ToString("hh\\:mm") - @item.EndTime.ToString("hh\\:mm")</td>
-            <td>@item.Location</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ScheduleID" class="btn btn-sm btn-warning">Edit</a>
-                <a asp-action="Details" asp-route-id="@item.ScheduleID" class="btn btn-sm btn-info">Details</a>
-                <a asp-action="Delete" asp-route-id="@item.ScheduleID" class="btn btn-sm btn-danger">Delete</a>
-            </td>
-        </tr>
+<style>
+    .schedule-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .schedule-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .btn-add {
+        background-color: #4CAF50;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        font-size: 14px;
+    }
+
+    .btn-add:hover {
+        background-color: #45a049;
+        text-decoration: none;
+    }
+
+    .schedule-table-container {
+        overflow-x: auto;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        background-color: white;
+    }
+
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .schedule-table th {
+        background-color: #2c3e50;
+        color: white;
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .schedule-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+    }
+
+    .schedule-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .schedule-table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-edit, .btn-details, .btn-delete {
+        padding: 6px 10px;
+        border-radius: 4px;
+        color: white;
+        text-decoration: none;
+        transition: opacity 0.3s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-edit {
+        background-color: #3498db;
+    }
+
+    .btn-details {
+        background-color: #f39c12;
+    }
+
+    .btn-delete {
+        background-color: #e74c3c;
+    }
+
+    .btn-edit:hover, .btn-details:hover, .btn-delete:hover {
+        opacity: 0.8;
+        text-decoration: none;
+        color: white;
+    }
+
+    .fa-edit, .fa-info-circle, .fa-trash-alt {
+        font-size: 14px;
+    }
+</style>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 }
-    </tbody>
-</table> 

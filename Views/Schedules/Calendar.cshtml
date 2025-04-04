@@ -4,16 +4,113 @@
     ViewData["Title"] = "Schedule Calendar";
 }
 
-<h1>Schedule Calendar</h1>
+<div class="calendar-container">
+    <div class="calendar-header">
+        <h1>@ViewData["Title"]</h1>
+    </div>
 
-<div class="row">
-    <div class="col-md-12">
+    <div class="calendar-wrapper">
         <div id="calendar"></div>
     </div>
 </div>
 
-@section Scripts {
+@section Styles {
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary-blue: #1a73e8;
+            --light-blue: #e8f0fe;
+            --dark-blue: #0d47a1;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .calendar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .calendar-header h1 {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .calendar-wrapper {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        /* FullCalendar Customization */
+        .fc-header-toolbar {
+            margin-bottom: 20px !important;
+        }
+
+        .fc-button {
+            background-color: var(--primary-blue) !important;
+            border: none !important;
+            text-transform: capitalize !important;
+            font-weight: 500 !important;
+        }
+
+        .fc-button:hover {
+            background-color: var(--dark-blue) !important;
+        }
+
+        .fc-button-active {
+            background-color: var(--dark-blue) !important;
+        }
+
+        .fc-today-button {
+            background-color: var(--white) !important;
+            color: var(--primary-blue) !important;
+            border: 1px solid var(--primary-blue) !important;
+        }
+
+        .fc-day-today {
+            background-color: var(--light-blue) !important;
+        }
+
+        .fc-event {
+            background-color: var(--primary-blue) !important;
+            border: none !important;
+            padding: 3px 5px !important;
+            font-size: 0.85em !important;
+        }
+
+        .fc-event:hover {
+            opacity: 0.9 !important;
+        }
+
+        .fc-event-title {
+            font-weight: 500 !important;
+        }
+
+        .fc-col-header-cell {
+            background-color: var(--primary-blue) !important;
+            color: var(--white) !important;
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--primary-blue) !important;
+        }
+    </style>
+}
+
+@section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -34,16 +131,27 @@
                             start: '@schedule.StartDate.ToString("yyyy-MM-dd")T@schedule.StartTime.ToString("HH:mm:ss")',
                             end: '@schedule.EndDate.ToString("yyyy-MM-dd")T@schedule.EndTime.ToString("HH:mm:ss")',
                             daysOfWeek: [@string.Join(",", schedule.DaysOfWeek.Split(',').Select(d => d.Trim()))],
-                            location: '@schedule.Location'
+                            location: '@schedule.Location',
+                            description: 'Location: @schedule.Location\nTime: @schedule.StartTime.ToString("hh\\:mm") - @schedule.EndTime.ToString("hh\\:mm")'
                         },
                         </text>
                     }
                 ],
                 eventClick: function(info) {
-                    alert('Location: ' + info.event.extendedProps.location);
-                }
+                    alert(info.event.extendedProps.description);
+                },
+                eventDisplay: 'block',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                },
+                height: 'auto',
+                navLinks: true,
+                nowIndicator: true,
+                dayMaxEvents: true
             });
             calendar.render();
         });
     </script>
-} 
+}
