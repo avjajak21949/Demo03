@@ -185,6 +185,11 @@ namespace Demo03.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var schedule = await _context.Schedule.FindAsync(id);
+            if (schedule == null)
+            {
+                return NotFound();
+            }
+            
             _context.Schedule.Remove(schedule);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
