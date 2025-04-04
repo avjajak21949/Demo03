@@ -7,9 +7,14 @@
 <div class="container schedule-container">
     <div class="schedule-header">
         <h2>@ViewData["Title"]</h2>
-        <a asp-action="Create" class="btn btn-add">
-            <i class="fas fa-plus"></i> Add New Schedule
-        </a>
+        <div class="header-actions">
+            <a asp-action="Create" class="btn btn-add">
+                <i class="fas fa-plus"></i> Add New Schedule
+            </a>
+            <a asp-action="Calendar" class="btn btn-calendar">
+                <i class="fas fa-calendar-alt"></i> View Calendar
+            </a>
+        </div>
     </div>
 
     <div class="schedule-table-container">
@@ -58,7 +63,6 @@
         padding: 20px;
         max-width: 1200px;
         margin: 0 auto;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     .schedule-header {
@@ -66,8 +70,13 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 25px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #eee;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
     }
 
     .btn-add {
@@ -77,19 +86,33 @@
         border-radius: 4px;
         text-decoration: none;
         transition: background-color 0.3s;
-        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .btn-add:hover {
-        background-color: #45a049;
+    .btn-calendar {
+        background-color: #3b82f6;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
         text-decoration: none;
+        transition: background-color 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-add:hover, .btn-calendar:hover {
+        opacity: 0.9;
+        text-decoration: none;
+        color: white;
     }
 
     .schedule-table-container {
         overflow-x: auto;
         box-shadow: 0 0 10px rgba(0,0,0,0.1);
         border-radius: 8px;
-        background-color: white;
     }
 
     .schedule-table {
@@ -103,13 +126,11 @@
         color: white;
         padding: 12px 15px;
         text-align: left;
-        font-weight: 600;
     }
 
     .schedule-table td {
         padding: 12px 15px;
-        border-bottom: 1px solid #eee;
-        vertical-align: middle;
+        border-bottom: 1px solid #ddd;
     }
 
     .schedule-table tr:nth-child(even) {
@@ -152,10 +173,6 @@
         opacity: 0.8;
         text-decoration: none;
         color: white;
-    }
-
-    .fa-edit, .fa-info-circle, .fa-trash-alt {
-        font-size: 14px;
     }
 </style>
 

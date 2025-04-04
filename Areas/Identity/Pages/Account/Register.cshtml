@@ -2,87 +2,271 @@
 @model RegisterModel
 @{
     ViewData["Title"] = "Register";
+    Layout = null;
 }
 
-<h1>@ViewData["Title"]</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1a73e8;
+            --light-blue: #e8f0fe;
+            --dark-blue: #0d47a1;
+            --white: #ffffff;
+            --gray-light: #f8f9fa;
+        }
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h4>Create a new account.</h4>
-            <hr />
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Input.Email"></label>
-                <input asp-for="Input.Email" class="form-control" />
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Input.Password"></label>
-                <input asp-for="Input.Password" class="form-control" />
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Input.ConfirmPassword"></label>
-                <input asp-for="Input.ConfirmPassword" class="form-control" />
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Select Role</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" asp-for="Input.Role" value="Student" id="studentRadio" />
-                    <label class="form-check-label" for="studentRadio">
-                        Student
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" asp-for="Input.Role" value="Employer" id="employerRadio" />
-                    <label class="form-check-label" for="employerRadio">
-                        Employer
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" asp-for="Input.Role" value="Teacher" id="teacherRadio" />
-                    <label class="form-check-label" for="teacherRadio">
-                        Teacher
-                    </label>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Register</button>
-        </form>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h4>Use another service to register.</h4>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See <a href="https://go.microsoft.com/fwlink/?LinkID=532715">this article</a>
-                            for details on setting up this ASP.NET application to support logging in via external services.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
+        body {
+            background-color: var(--white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-image: linear-gradient(135deg, var(--light-blue) 0%, var(--white) 100%);
+        }
+
+        .register-container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .register-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .register-header {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .register-header h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+
+        .form-section {
+            padding: 2rem;
+            background-color: var(--white);
+        }
+
+        .section-title {
+            color: var(--primary-blue);
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid #ced4da;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.25rem rgba(26, 115, 232, 0.25);
+        }
+
+        .btn-register {
+            background-color: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-register:hover {
+            background-color: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-external {
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 1px solid var(--primary-blue);
+            color: var(--primary-blue);
+            margin: 0.3rem;
+        }
+
+        .btn-external:hover {
+            background-color: var(--light-blue);
+            color: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .form-check-label {
+            cursor: pointer;
+        }
+
+        .role-selection {
+            background-color: var(--gray-light);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #6c757d;
+            margin: 1.5rem 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .divider::before {
+            margin-right: 1rem;
+        }
+
+        .divider::after {
+            margin-left: 1rem;
+        }
+
+        @@media (max-width: 768px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
             }
-        </section>
-    </div>
-</div>
+            
+            .register-container {
+                margin-top: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <h1><i class="fas fa-user-plus"></i> @ViewData["Title"]</h1>
+            </div>
+            
+            <div class="row g-0">
+                <div class="col-lg-6">
+                    <div class="form-section">
+                        <h4 class="section-title"><i class="fas fa-user-circle"></i> Create Account</h4>
+                        <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                            <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 
-@section Scripts {
+                            <div class="form-floating mb-3">
+                                <input asp-for="Input.Email" class="form-control" placeholder="Email" />
+                                <label asp-for="Input.Email">Email</label>
+                                <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input asp-for="Input.Password" class="form-control" placeholder="Password" />
+                                <label asp-for="Input.Password">Password</label>
+                                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input asp-for="Input.ConfirmPassword" class="form-control" placeholder="Confirm Password" />
+                                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
+                                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                            </div>
+
+                            <div class="role-selection mb-4">
+                                <label class="form-label fw-bold">Select Role</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Input.Role" value="Student" id="studentRadio" />
+                                    <label class="form-check-label" for="studentRadio">
+                                        <i class="fas fa-graduation-cap"></i> Student
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Input.Role" value="Employer" id="employerRadio" />
+                                    <label class="form-check-label" for="employerRadio">
+                                        <i class="fas fa-briefcase"></i> Employer
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Input.Role" value="Teacher" id="teacherRadio" />
+                                    <label class="form-check-label" for="teacherRadio">
+                                        <i class="fas fa-chalkboard-teacher"></i> Teacher
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-register mb-3">
+                                <i class="fas fa-user-plus"></i> Register
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="form-section" style="border-left: 1px solid var(--gray-light);">
+                        <h4 class="section-title"><i class="fas fa-users"></i> External Registration</h4>
+                        
+                        @if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                        {
+                            <div class="alert alert-info text-center">
+                                <p class="mb-0">
+                                    <i class="fas fa-info-circle"></i> No external authentication services configured.
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                <div class="d-flex flex-wrap justify-content-center">
+                                    @foreach (var provider in Model.ExternalLogins)
+                                    {
+                                        <button type="submit" class="btn btn-external" name="provider" value="@provider.Name" title="Register using your @provider.DisplayName account">
+                                            <i class="fab fa-@provider.DisplayName.ToLower()"></i> @provider.DisplayName
+                                        </button>
+                                    }
+                                </div>
+                            </form>
+                        }
+
+                        <div class="divider">OR</div>
+
+                        <div class="text-center">
+                            <p>Already have an account? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-primary">Sign in</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
-}
+</body>
+</html>
