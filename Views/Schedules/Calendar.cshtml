@@ -1,50 +1,89 @@
 @model IEnumerable<Demo03.Models.Schedule>
-
 @{
     ViewData["Title"] = "Schedule Calendar";
+    Layout = null;
 }
 
-<div class="calendar-container">
-    <div class="calendar-header">
-        <h1>@ViewData["Title"]</h1>
-    </div>
-
-    <div class="calendar-wrapper">
-        <div id="calendar"></div>
-    </div>
-</div>
-
-@section Styles {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <!-- CSS Resources -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
     <style>
         :root {
             --primary-blue: #1a73e8;
             --light-blue: #e8f0fe;
             --dark-blue: #0d47a1;
             --white: #ffffff;
+            --text-dark: #333333;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
+            background-color: #f8f9fa;
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            color: var(--text-dark);
         }
 
         .calendar-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
         }
 
         .calendar-header {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .calendar-header h1 {
             color: var(--primary-blue);
             font-weight: 600;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .calendar-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back {
+            background-color: var(--white);
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+        }
+
+        .btn-back:hover {
+            background-color: var(--light-blue);
+        }
+
+        .btn-print {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-print:hover {
+            background-color: var(--dark-blue);
         }
 
         .calendar-wrapper {
@@ -54,16 +93,16 @@
             padding: 20px;
         }
 
-        /* FullCalendar Customization */
-        .fc-header-toolbar {
-            margin-bottom: 20px !important;
+        /* FullCalendar Custom Styles */
+        .fc-toolbar-title {
+            font-size: 1.5em;
+            color: var(--primary-blue);
         }
 
         .fc-button {
             background-color: var(--primary-blue) !important;
             border: none !important;
-            text-transform: capitalize !important;
-            font-weight: 500 !important;
+            transition: background-color 0.3s !important;
         }
 
         .fc-button:hover {
@@ -87,8 +126,10 @@
         .fc-event {
             background-color: var(--primary-blue) !important;
             border: none !important;
-            padding: 3px 5px !important;
+            padding: 5px !important;
             font-size: 0.85em !important;
+            cursor: pointer;
+            border-radius: 3px !important;
         }
 
         .fc-event:hover {
@@ -97,21 +138,65 @@
 
         .fc-event-title {
             font-weight: 500 !important;
+            white-space: normal !important;
         }
 
         .fc-col-header-cell {
             background-color: var(--primary-blue) !important;
             color: var(--white) !important;
+            padding: 10px 0 !important;
         }
 
         .fc-daygrid-day-number {
-            color: var(--primary-blue) !important;
+            color: var(--text-dark) !important;
+            font-weight: 500;
+        }
+
+        @@media (max-width: 768px) {
+            .calendar-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .calendar-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .fc-toolbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .fc-toolbar-chunk {
+                display: flex;
+                justify-content: center;
+            }
         }
     </style>
-}
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <h1><i class="fas fa-calendar-alt"></i> @ViewData["Title"]</h1>
+            <div class="calendar-actions">
+                <a asp-action="Index" class="calendar-btn btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <button onclick="window.print()" class="calendar-btn btn-print">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
 
-@section Scripts {
+        <div class="calendar-wrapper">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript Resources -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
@@ -120,19 +205,30 @@
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay listWeek'
+                },
+                views: {
+                    timeGridWeek: {
+                        dayHeaderFormat: { weekday: 'short', day: 'numeric' }
+                    }
                 },
                 events: [
                     @foreach (var schedule in Model)
                     {
                         <text>
                         {
-                            title: '@schedule.Class.Course.Title - @schedule.Class.Name',
+                            title: '@schedule.Class?.Name - @schedule.Class?.Course?.Title',
                             start: '@schedule.StartDate.ToString("yyyy-MM-dd")T@schedule.StartTime.ToString("HH:mm:ss")',
                             end: '@schedule.EndDate.ToString("yyyy-MM-dd")T@schedule.EndTime.ToString("HH:mm:ss")',
                             daysOfWeek: [@string.Join(",", schedule.DaysOfWeek.Split(',').Select(d => d.Trim()))],
-                            location: '@schedule.Location',
-                            description: 'Location: @schedule.Location\nTime: @schedule.StartTime.ToString("hh\\:mm") - @schedule.EndTime.ToString("hh\\:mm")'
+                            extendedProps: {
+                                location: '@schedule.Location',
+                                description: 'Class: @schedule.Class?.Name\n' +
+                                            'Course: @schedule.Class?.Course?.Title\n' +
+                                            'Time: @schedule.StartTime.ToString("hh\\:mm") - @schedule.EndTime.ToString("hh\\:mm")\n' +
+                                            'Days: @schedule.DaysOfWeek\n' +
+                                            'Location: @schedule.Location'
+                            }
                         },
                         </text>
                     }
@@ -149,9 +245,31 @@
                 height: 'auto',
                 navLinks: true,
                 nowIndicator: true,
-                dayMaxEvents: true
+                dayMaxEvents: 3,
+                eventDidMount: function(info) {
+                    // Add location to event title if space allows
+                    if (info.view.type === 'dayGridMonth' || info.view.type === 'listWeek') {
+                        info.el.querySelector('.fc-event-title').innerHTML += 
+                            '<br><small>' + info.event.extendedProps.location + '</small>';
+                    }
+                }
             });
             calendar.render();
+            
+            // Responsive adjustments
+            function handleResize() {
+                if (window.innerWidth < 768) {
+                    calendar.changeView('listWeek');
+                } else {
+                    if (calendar.view.type === 'listWeek') {
+                        calendar.changeView('dayGridMonth');
+                    }
+                }
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // Initial check
         });
     </script>
-}
+</body>
+</html>
