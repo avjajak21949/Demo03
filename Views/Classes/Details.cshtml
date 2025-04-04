@@ -28,8 +28,8 @@
                         <td>@schedule.Location</td>
                         <td>@schedule.StartDate.ToShortDateString() - @schedule.EndDate.ToShortDateString()</td>
                         <td>
-                            <a asp-controller="Schedule" asp-action="Details" asp-route-id="@schedule.ScheduleID">Details</a> |
-                            <a asp-controller="Schedule" asp-action="Edit" asp-route-id="@schedule.ScheduleID">Edit</a>
+                            <a asp-controller="Schedules" asp-action="Details" asp-route-id="@schedule.ScheduleID">Details</a> |
+                            <a asp-controller="Schedules" asp-action="Edit" asp-route-id="@schedule.ScheduleID">Edit</a>
                         </td>
                     </tr>
                 }
@@ -42,7 +42,7 @@
     }
 
     <p>
-        <a asp-controller="Schedule" asp-action="Create" asp-route-classId="@Model.ClassID" class="btn btn-primary">Add Schedule</a>
+        <a asp-controller="Schedules" asp-action="Create" asp-route-classId="@Model.ClassID" class="btn btn-primary">Add Schedule</a>
     </p>
 </div>
 

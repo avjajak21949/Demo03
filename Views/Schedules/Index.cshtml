@@ -1,0 +1,45 @@
+@model IEnumerable<Demo03.Models.Schedule>
+
+@{
+    ViewData["Title"] = "Schedules";
+}
+
+<h1>Schedules</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Schedule</a>
+    <a asp-action="Calendar" class="btn btn-info">View Calendar</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Class</th>
+            <th>Course</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Days</th>
+            <th>Time</th>
+            <th>Location</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@item.Class.Name</td>
+            <td>@item.Class.Course.Title</td>
+            <td>@item.StartDate.ToShortDateString()</td>
+            <td>@item.EndDate.ToShortDateString()</td>
+            <td>@item.DaysOfWeek</td>
+            <td>@item.StartTime.ToString("hh\\:mm") - @item.EndTime.ToString("hh\\:mm")</td>
+            <td>@item.Location</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.ScheduleID" class="btn btn-sm btn-warning">Edit</a>
+                <a asp-action="Details" asp-route-id="@item.ScheduleID" class="btn btn-sm btn-info">Details</a>
+                <a asp-action="Delete" asp-route-id="@item.ScheduleID" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table> 

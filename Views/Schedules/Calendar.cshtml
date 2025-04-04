@@ -1,0 +1,49 @@
+@model IEnumerable<Demo03.Models.Schedule>
+
+@{
+    ViewData["Title"] = "Schedule Calendar";
+}
+
+<h1>Schedule Calendar</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: [
+                    @foreach (var schedule in Model)
+                    {
+                        <text>
+                        {
+                            title: '@schedule.Class.Course.Title - @schedule.Class.Name',
+                            start: '@schedule.StartDate.ToString("yyyy-MM-dd")T@schedule.StartTime.ToString("HH:mm:ss")',
+                            end: '@schedule.EndDate.ToString("yyyy-MM-dd")T@schedule.EndTime.ToString("HH:mm:ss")',
+                            daysOfWeek: [@string.Join(",", schedule.DaysOfWeek.Split(',').Select(d => d.Trim()))],
+                            location: '@schedule.Location'
+                        },
+                        </text>
+                    }
+                ],
+                eventClick: function(info) {
+                    alert('Location: ' + info.event.extendedProps.location);
+                }
+            });
+            calendar.render();
+        });
+    </script>
+} 

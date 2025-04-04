@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Demo03.Models;
 using Microsoft.AspNetCore.Identity;
+using System.Linq;
 
 namespace Demo03.Data
 {
@@ -40,11 +41,12 @@ namespace Demo03.Data
                 .HasOne(co => co.Category)
                 .WithMany(cat => cat.Course)
                 .HasForeignKey(co => co.CategoryID);
-                modelBuilder.Entity<Schedule>()
-        .HasOne(s => s.Class)
-        .WithMany(c => c.Schedules)
-        .HasForeignKey(s => s.ClassID)
-        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Schedule>()
+                .HasOne(s => s.Class)
+                .WithMany(c => c.Schedules)
+                .HasForeignKey(s => s.ClassID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         private void SeedUserRole(ModelBuilder builder)
@@ -85,18 +87,21 @@ namespace Demo03.Data
                 NormalizedEmail = "TEACHER@GMAIL.COM",
                 EmailConfirmed = true
             };
+
             var hasher = new PasswordHasher<IdentityUser>();
             adminAccount.PasswordHash = hasher.HashPassword(adminAccount, "123456");
             studentAccount.PasswordHash = hasher.HashPassword(studentAccount, "123456");
             employerAccount.PasswordHash = hasher.HashPassword(employerAccount, "123456");
             teacherAccount.PasswordHash = hasher.HashPassword(teacherAccount, "123456");
+
             builder.Entity<IdentityUser>().HasData(adminAccount, studentAccount, employerAccount, teacherAccount);
+
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole
                 {
                     Id = "role0",
-                    Name = "Adminstator",
-                    NormalizedName = "ADMINSTRATOR"
+                    Name = "Administrator",
+                    NormalizedName = "ADMINISTRATOR"
                 },
                 new IdentityRole
                 {
@@ -115,7 +120,9 @@ namespace Demo03.Data
                     Id = "role3",
                     Name = "Teacher",
                     NormalizedName = "TEACHER"
-                });
+                }
+            );
+
             builder.Entity<IdentityUserRole<string>>().HasData(
                 new IdentityUserRole<string>
                 {

@@ -91,24 +91,12 @@
         $(document).ready(function () {
             // Update hidden field when checkboxes change
             $("input[name='dayCheckbox']").change(function () {
-                var daysOfWeek = "";
+                var selectedDays = [];
                 $("input[name='dayCheckbox']:checked").each(function () {
-                    if (daysOfWeek) {
-                        daysOfWeek += ",";
-                    }
-                    daysOfWeek += $(this).val();
+                    selectedDays.push($(this).val());
                 });
-                $("#daysOfWeekInput").val(daysOfWeek);
-            });
-
-            // Initial trigger to set the hidden field
-            $("input[name='dayCheckbox']").first().trigger("change");
-
-            // Ensure form submission captures the days
-            $("form").submit(function() {
-                $("input[name='dayCheckbox']").first().trigger("change");
-                return true;
+                $("#daysOfWeekInput").val(selectedDays.join(","));
             });
         });
     </script>
-}
+} 
