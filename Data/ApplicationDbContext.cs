@@ -47,6 +47,18 @@ namespace Demo03.Data
                 .WithMany(c => c.Schedules)
                 .HasForeignKey(s => s.ClassID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Document>()
+                .HasOne(d => d.UploadedBy)
+                .WithMany()
+                .HasForeignKey(d => d.UploadedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Document>()
+                .HasOne(d => d.Class)
+                .WithMany()
+                .HasForeignKey(d => d.ClassID)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         private void SeedUserRole(ModelBuilder builder)
@@ -147,11 +159,12 @@ namespace Demo03.Data
             );
         }
 
-        public DbSet<Demo03.Models.Category> Category { get; set; }
-        public DbSet<Demo03.Models.Class> Class { get; set; }
-        public DbSet<Demo03.Models.Course> Course { get; set; }
-        public DbSet<Demo03.Models.StudentClass> StudentClass { get; set; }
-        public DbSet<Demo03.Models.StudentEnrollment> StudentEnrollment { get; set; }
-        public DbSet<Demo03.Models.Schedule> Schedule { get; set; }
+        public DbSet<Category> Category { get; set; }
+        public DbSet<Class> Class { get; set; }
+        public DbSet<Course> Course { get; set; }
+        public DbSet<StudentClass> StudentClass { get; set; }
+        public DbSet<StudentEnrollment> StudentEnrollment { get; set; }
+        public DbSet<Schedule> Schedule { get; set; }
+        public DbSet<Document> Documents { get; set; }
     }
 }
