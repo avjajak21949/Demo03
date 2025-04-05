@@ -16,6 +16,12 @@ namespace Demo03.Data
         {
         }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -58,6 +64,32 @@ namespace Demo03.Data
                 .HasOne(d => d.Class)
                 .WithMany()
                 .HasForeignKey(d => d.ClassID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Meeting configurations
+            modelBuilder.Entity<Meeting>()
+                .HasOne(m => m.Host)
+                .WithMany()
+                .HasForeignKey(m => m.HostUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Meeting>()
+                .HasOne(m => m.Class)
+                .WithMany(c => c.Meetings)
+                .HasForeignKey(m => m.ClassID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Attendance relationships
+            modelBuilder.Entity<Attendance>()
+                .HasOne(a => a.Student)
+                .WithMany()
+                .HasForeignKey(a => a.StudentID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Attendance>()
+                .HasOne(a => a.Class)
+                .WithMany()
+                .HasForeignKey(a => a.ClassID)
                 .OnDelete(DeleteBehavior.Restrict);
         }
 
@@ -166,5 +198,7 @@ namespace Demo03.Data
         public DbSet<StudentEnrollment> StudentEnrollment { get; set; }
         public DbSet<Schedule> Schedule { get; set; }
         public DbSet<Document> Documents { get; set; }
+        public DbSet<Meeting> Meetings { get; set; }
+        public DbSet<Attendance> Attendance { get; set; }
     }
 }

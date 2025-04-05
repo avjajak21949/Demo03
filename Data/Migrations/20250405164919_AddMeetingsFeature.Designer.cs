@@ -4,6 +4,7 @@ using Demo03.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Demo03.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250405164919_AddMeetingsFeature")]
+    partial class AddMeetingsFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,35 +24,6 @@ namespace Demo03.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Demo03.Models.Attendance", b =>
-                {
-                    b.Property<int>("AttendanceID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceID"));
-
-                    b.Property<int>("ClassID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsPresent")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("StudentID")
-                        .HasColumnType("int");
-
-                    b.HasKey("AttendanceID");
-
-                    b.HasIndex("ClassID");
-
-                    b.HasIndex("StudentID");
-
-                    b.ToTable("Attendance");
-                });
 
             modelBuilder.Entity("Demo03.Models.Category", b =>
                 {
@@ -96,33 +70,21 @@ namespace Demo03.Data.Migrations
 
             modelBuilder.Entity("Demo03.Models.Course", b =>
                 {
-                    b.Property<int>("CourseID")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CourseID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CategoryID")
                         .HasColumnType("int");
 
-                    b.Property<string>("CourseCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("CreditHours")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsApproved")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Place")
                         .IsRequired()
@@ -135,7 +97,11 @@ namespace Demo03.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("CourseID");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("CategoryID");
 
@@ -175,9 +141,6 @@ namespace Demo03.Data.Migrations
                     b.Property<int?>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int?>("StudentID")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -198,8 +161,6 @@ namespace Demo03.Data.Migrations
                     b.HasIndex("ClassID");
 
                     b.HasIndex("CourseID");
-
-                    b.HasIndex("StudentID");
 
                     b.HasIndex("UploadedByUserId");
 
@@ -233,9 +194,6 @@ namespace Demo03.Data.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("StudentID")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -246,8 +204,6 @@ namespace Demo03.Data.Migrations
                     b.HasIndex("ClassID");
 
                     b.HasIndex("HostUserId");
-
-                    b.HasIndex("StudentID");
 
                     b.ToTable("Meetings");
                 });
@@ -292,40 +248,6 @@ namespace Demo03.Data.Migrations
                     b.ToTable("Schedule");
                 });
 
-            modelBuilder.Entity("Demo03.Models.Student", b =>
-                {
-                    b.Property<int>("StudentID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudentID"));
-
-                    b.Property<string>("Course")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("StudentNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("YearOfStudy")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("StudentID");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Student");
-                });
-
             modelBuilder.Entity("Demo03.Models.StudentClass", b =>
                 {
                     b.Property<int>("StudentClassID")
@@ -358,9 +280,7 @@ namespace Demo03.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SEID"));
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("SEID");
 
@@ -514,15 +434,15 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user0",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "bf192b91-8070-44a3-bf7c-5469ed67c2ea",
+                            ConcurrencyStamp = "4f3b0be9-47d5-401f-9fe6-b93500b9be8a",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOPug2vVE0WMwv8p/hZWewBneS9p0hw8bZTKdIjMpWozK1KyBHaUcEsVPi8rOuggUA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOegcJmwlAPS2gLhWNvwUm/Wq3fCF5U5cfm/x+BkPgcvlU0qry239cvmjEPyPnMH3g==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "e9ace0f7-9fb6-47e1-b3af-bb0eed22f3e4",
+                            SecurityStamp = "b397bb8f-7414-449b-8095-e5103ccaa565",
                             TwoFactorEnabled = false,
                             UserName = "admin@gmail.com"
                         },
@@ -530,15 +450,15 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ee34c60c-4234-480d-ba4a-88f3b260eec6",
+                            ConcurrencyStamp = "6f32ad85-b26c-474e-a96e-38b68b043412",
                             Email = "student@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "STUDENT@GMAIL.COM",
                             NormalizedUserName = "STUDENT@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIttEnUFHZV/3qqRJu5XAcfVyCAMTurpQNSkbvJkRS6dKdzFJPwDgeMkPXyW+b2sOw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEJNlazSjCEoiCNaCPMy5tifOg6u1IBMWwIFizUGSqXGG70sohLTQMY469sKYa45hw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "5f4858d7-60db-4284-8e50-01d7dd5ed32d",
+                            SecurityStamp = "9a9b6d61-dda2-4ae2-89b8-5f18379ddf96",
                             TwoFactorEnabled = false,
                             UserName = "student@gmail.com"
                         },
@@ -546,15 +466,15 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user2",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e194a8e6-87a6-4110-9f41-6e3d25605b0f",
+                            ConcurrencyStamp = "366c3a0a-2d82-42f3-aaac-bbcaabb4db7d",
                             Email = "employer@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "EMPLOYER@GMAIL.COM",
                             NormalizedUserName = "EMPLOYER@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEmOF+auoqopaIaKMG5Xe/dVAtIhAeHVOftpl0Jzlxh7CSbwT2n2GsXQgX04q9PYvQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGlKi+O3le7ak5VhBdljC8kcPzLVkCSEmsWDj4Az0tCyMnT4XQ8M9l+HSsybBb9eSQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "ef7cac97-89f5-4e99-b113-cfa48bde205b",
+                            SecurityStamp = "7d1f4e75-5020-418a-8db5-d277bccc41bc",
                             TwoFactorEnabled = false,
                             UserName = "employer@gmail.com"
                         },
@@ -562,15 +482,15 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user3",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "664e1c35-6209-470e-b7f6-0992beecc828",
+                            ConcurrencyStamp = "4ec8c63f-ecde-4749-b2cd-a7d7d5b78c64",
                             Email = "teacher@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "TEACHER@GMAIL.COM",
                             NormalizedUserName = "TEACHER@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAECGdJpruvXaONEClUfiBwfUezIYoD2pMGhwCRFic6CxQHiMky51F6g4U63HuJRUIfA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIU7ik8XWRseQIh3qYCzS/frgxKzU9K/YOqCP3p43zAGp++jfZ6Xfk+QERfHcC3hgw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "b4e5afec-ea5d-4a62-a729-02b344541397",
+                            SecurityStamp = "a49103fe-d7b6-4d7a-9d50-d339f388f540",
                             TwoFactorEnabled = false,
                             UserName = "teacher@gmail.com"
                         });
@@ -683,25 +603,6 @@ namespace Demo03.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Demo03.Models.Attendance", b =>
-                {
-                    b.HasOne("Demo03.Models.Class", "Class")
-                        .WithMany()
-                        .HasForeignKey("ClassID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Demo03.Models.Student", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Class");
-
-                    b.Navigation("Student");
-                });
-
             modelBuilder.Entity("Demo03.Models.Class", b =>
                 {
                     b.HasOne("Demo03.Models.Course", "Course")
@@ -735,10 +636,6 @@ namespace Demo03.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CourseID");
 
-                    b.HasOne("Demo03.Models.Student", null)
-                        .WithMany("Documents")
-                        .HasForeignKey("StudentID");
-
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "UploadedBy")
                         .WithMany()
                         .HasForeignKey("UploadedByUserId")
@@ -766,10 +663,6 @@ namespace Demo03.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Demo03.Models.Student", null)
-                        .WithMany("Meetings")
-                        .HasForeignKey("StudentID");
-
                     b.Navigation("Class");
 
                     b.Navigation("Host");
@@ -784,17 +677,6 @@ namespace Demo03.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Class");
-                });
-
-            modelBuilder.Entity("Demo03.Models.Student", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Demo03.Models.StudentClass", b =>
@@ -884,13 +766,6 @@ namespace Demo03.Data.Migrations
             modelBuilder.Entity("Demo03.Models.Course", b =>
                 {
                     b.Navigation("Classes");
-                });
-
-            modelBuilder.Entity("Demo03.Models.Student", b =>
-                {
-                    b.Navigation("Documents");
-
-                    b.Navigation("Meetings");
                 });
 
             modelBuilder.Entity("Demo03.Models.StudentEnrollment", b =>

@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Demo03.Data;
 using Demo03.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Demo03.Controllers
 {
+    [Authorize]
     public class CoursesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,8 +24,7 @@ namespace Demo03.Controllers
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Course.Include(c => c.Category);
-            return View(await applicationDbContext.ToListAsync());
+            return View(await _context.Course.Include(c => c.Classes).ToListAsync());
         }
 
         // GET: Courses/Details/5
@@ -46,6 +47,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["CategoryID"] = new SelectList(_context.Category, "Id", "Id");
@@ -57,7 +59,8 @@ namespace Demo03.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,Price,Place,Time,CategoryID,IsApproved")] Course course)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([Bind("Name,Description,CourseCode,CreditHours")] Course course)
         {
             if (ModelState.IsValid)
             {
@@ -70,6 +73,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -91,9 +95,10 @@ namespace Demo03.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Price,Place,Time,CategoryID,IsApproved")] Course course)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("CourseID,Name,Description,CourseCode,CreditHours")] Course course)
         {
-            if (id != course.Id)
+            if (id != course.CourseID)
             {
                 return NotFound();
             }
@@ -107,7 +112,7 @@ namespace Demo03.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CourseExists(course.Id))
+                    if (!CourseExists(course.CourseID))
                     {
                         return NotFound();
                     }
@@ -154,7 +159,7 @@ namespace Demo03.Controllers
 
         private bool CourseExists(int id)
         {
-            return _context.Course.Any(e => e.Id == id);
+            return _context.Course.Any(e => e.CourseID == id);
         }
     }
 }

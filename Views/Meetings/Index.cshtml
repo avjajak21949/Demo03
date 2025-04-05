@@ -1,0 +1,38 @@
+@model IEnumerable<Demo03.Models.Meeting>
+
+@{
+    ViewData["Title"] = "Online Classes";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Online Classes</h2>
+        @if (User.IsInRole("Teacher"))
+        {
+            <a asp-action="Create" class="btn btn-primary">Create New Meeting</a>
+        }
+    </div>
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Title</h5>
+                        <p class="card-text">
+                            <strong>Class:</strong> @item.Class.Name<br />
+                            <strong>Date:</strong> @item.StartTime.ToString("MMM dd, yyyy")<br />
+                            <strong>Time:</strong> @item.StartTime.ToString("hh:mm tt")<br />
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                <strong>Description:</strong> @item.Description<br />
+                            }
+                        </p>
+                        <a href="@item.MeetingLink" target="_blank" class="btn btn-success">Join Meeting</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div> 
