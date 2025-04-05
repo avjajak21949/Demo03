@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Demo03.Services;
 
 namespace Demo03.Areas.Identity.Pages.Account
 {
@@ -22,18 +23,18 @@ namespace Demo03.Areas.Identity.Pages.Account
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ILogger<RegisterModel> _logger;
-        private readonly IEmailSender _emailSender;
+        private readonly IEmailService _emailService;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
-            _emailSender = emailSender;
+            _emailService = emailService;
         }
 
         [BindProperty]
@@ -71,7 +72,7 @@ namespace Demo03.Areas.Identity.Pages.Account
         }
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            returnUrl = returnUrl ?? Url.Content("~/");
+            returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
@@ -90,8 +91,15 @@ namespace Demo03.Areas.Identity.Pages.Account
                         protocol: Request.Scheme);
 
                     await _userManager.AddToRoleAsync(user, Input.Role);
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    var emailSubject = "Welcome to E-Learning - Confirm Your Email";
+                    var emailBody = $@"
+                        <h2>Welcome to E-Learning!</h2>
+                        <p>Thank you for registering. Please confirm your email by clicking the link below:</p>
+                        <p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Click here to confirm your email</a></p>
+                        <p>After confirming your email, you can start using all features of our platform.</p>
+                        <p>Best regards,<br>E-Learning Team</p>";
+
+                    await _emailService.SendEmailAsync(Input.Email, emailSubject, emailBody);
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {

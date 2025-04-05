@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Demo03.Data;
 using Demo03.Models;
 using Microsoft.AspNetCore.Http;
+using Demo03.Services;
 
 namespace Demo03.Controllers
 {
@@ -20,15 +21,18 @@ namespace Demo03.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IWebHostEnvironment _environment;
+        private readonly IEmailService _emailService;
 
         public DocumentsController(
             ApplicationDbContext context,
             UserManager<IdentityUser> userManager,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            IEmailService emailService)
         {
             _context = context;
             _userManager = userManager;
             _environment = environment;
+            _emailService = emailService;
         }
 
         // GET: Documents
@@ -80,11 +84,68 @@ namespace Demo03.Controllers
 
                 _context.Add(document);
                 await _context.SaveChangesAsync();
+
+                // Send email notifications to students in the class
+                if (document.ClassID.HasValue)
+                {
+                    var studentsInClass = await _context.StudentClass
+                        .Include(sc => sc.StudentEnrollment)
+                        .Where(sc => sc.ClassID == document.ClassID)
+                        .Select(sc => sc.StudentEnrollment)
+                        .ToListAsync();
+
+                    var className = await _context.Class
+                        .Where(c => c.ClassID == document.ClassID)
+                        .Select(c => c.Name)
+                        .FirstOrDefaultAsync();
+
+                    foreach (var student in studentsInClass)
+                    {
+                        var studentUser = await _userManager.FindByIdAsync(student.UserId);
+                        if (studentUser?.Email != null)
+                        {
+                            var subject = $"New Document Added to {className}";
+                            var body = $@"
+                                <h2>New Document Available</h2>
+                                <p>A new document has been added to your class {className}:</p>
+                                <p><strong>{document.Title}</strong></p>
+                                <p>{document.Description}</p>
+                                <p>You can view and download this document from your course materials.</p>";
+
+                            await _emailService.SendEmailAsync(studentUser.Email, subject, body);
+                        }
+                    }
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 
             ViewData["ClassID"] = new SelectList(_context.Class, "ClassID", "Name", document.ClassID);
             return View(document);
+        }
+
+        // GET: Documents/CourseDocuments
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> CourseDocuments()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            
+            // Get the classes the student is enrolled in
+            var studentClasses = await _context.StudentClass
+                .Where(sc => sc.StudentEnrollment.UserId == user.Id)
+                .Select(sc => sc.ClassID)
+                .ToListAsync();
+
+            // Get documents for those classes
+            var documents = await _context.Documents
+                .Include(d => d.Class)
+                .Include(d => d.UploadedBy)
+                .Where(d => d.Type == DocumentType.CourseDocument && 
+                           studentClasses.Contains(d.ClassID ?? -1))
+                .OrderByDescending(d => d.UploadDate)
+                .ToListAsync();
+
+            return View(documents);
         }
 
         // GET: Documents/Download/5
@@ -95,10 +156,30 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var document = await _context.Documents.FindAsync(id);
+            var document = await _context.Documents
+                .Include(d => d.Class)
+                .FirstOrDefaultAsync(d => d.DocumentID == id);
+
             if (document == null)
             {
                 return NotFound();
+            }
+
+            // Check if user has access to this document
+            var user = await _userManager.GetUserAsync(User);
+            if (User.IsInRole("Student"))
+            {
+                var hasAccess = await _context.StudentClass
+                    .AnyAsync(sc => sc.StudentEnrollment.UserId == user.Id && 
+                                   sc.ClassID == document.ClassID);
+                if (!hasAccess)
+                {
+                    return Forbid();
+                }
+            }
+            else if (document.UploadedByUserId != user.Id && !User.IsInRole("Admin"))
+            {
+                return Forbid();
             }
 
             var filePath = Path.Combine(_environment.WebRootPath, "uploads", document.FileName);
