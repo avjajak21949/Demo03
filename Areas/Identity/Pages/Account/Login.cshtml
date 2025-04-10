@@ -48,9 +48,9 @@
             gap: 10px;
         }
 
-        .navbar-brand i {
-            font-size: 1.8rem;
-        }
+            .navbar-brand i {
+                font-size: 1.8rem;
+            }
 
         .login-container {
             max-width: 1000px;
@@ -74,11 +74,11 @@
             text-align: center;
         }
 
-        .login-header h1 {
-            margin: 0;
-            font-weight: 600;
-            font-size: 1.8rem;
-        }
+            .login-header h1 {
+                margin: 0;
+                font-weight: 600;
+                font-size: 1.8rem;
+            }
 
         .form-section {
             padding: 2rem;
@@ -104,10 +104,10 @@
             transition: all 0.3s;
         }
 
-        .form-control:focus {
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 0.25rem rgba(26, 115, 232, 0.25);
-        }
+            .form-control:focus {
+                border-color: var(--primary-blue);
+                box-shadow: 0 0 0 0.25rem rgba(26, 115, 232, 0.25);
+            }
 
         .btn-login {
             background-color: var(--primary-blue);
@@ -120,10 +120,10 @@
             color: white;
         }
 
-        .btn-login:hover {
-            background-color: var(--dark-blue);
-            transform: translateY(-2px);
-        }
+            .btn-login:hover {
+                background-color: var(--dark-blue);
+                transform: translateY(-2px);
+            }
 
         .link-secondary {
             color: var(--primary-blue);
@@ -131,10 +131,10 @@
             transition: all 0.3s;
         }
 
-        .link-secondary:hover {
-            color: var(--dark-blue);
-            text-decoration: underline;
-        }
+            .link-secondary:hover {
+                color: var(--dark-blue);
+                text-decoration: underline;
+            }
 
         .benefits-section {
             background-color: var(--gray-light);
@@ -143,10 +143,10 @@
             margin-top: 1.5rem;
         }
 
-        .benefits-section h5 {
-            color: var(--primary-blue);
-            margin-bottom: 1rem;
-        }
+            .benefits-section h5 {
+                color: var(--primary-blue);
+                margin-bottom: 1rem;
+            }
 
         .benefits-list {
             list-style: none;
@@ -154,17 +154,17 @@
             margin: 0;
         }
 
-        .benefits-list li {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-            color: #495057;
-        }
+            .benefits-list li {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+                color: #495057;
+            }
 
-        .benefits-list li i {
-            color: var(--primary-blue);
-        }
+                .benefits-list li i {
+                    color: var(--primary-blue);
+                }
 
         .divider {
             display: flex;
@@ -174,20 +174,20 @@
             margin: 1.5rem 0;
         }
 
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            border-bottom: 1px solid #dee2e6;
-        }
+            .divider::before,
+            .divider::after {
+                content: "";
+                flex: 1;
+                border-bottom: 1px solid #dee2e6;
+            }
 
-        .divider::before {
-            margin-right: 1rem;
-        }
+            .divider::before {
+                margin-right: 1rem;
+            }
 
-        .divider::after {
-            margin-left: 1rem;
-        }
+            .divider::after {
+                margin-left: 1rem;
+            }
     </style>
 </head>
 <body>
@@ -207,13 +207,16 @@
             <div class="login-header">
                 <h1><i class="fas fa-sign-in-alt"></i> @ViewData["Title"]</h1>
             </div>
-            
+
             <div class="row g-0">
                 <div class="col-lg-6">
                     <div class="form-section">
                         <h4 class="section-title"><i class="fas fa-user-circle"></i> Account Login</h4>
                         <form id="account" method="post">
-                            <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+                            @if (!ViewData.ModelState.IsValid)
+                            {
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                            }
 
                             <div class="form-floating mb-3">
                                 <input asp-for="Input.Email" class="form-control" placeholder="Email" />
