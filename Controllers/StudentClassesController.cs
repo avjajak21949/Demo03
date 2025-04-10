@@ -25,18 +25,34 @@ namespace Demo03.Controllers
         }
 
         // GET: StudentClasses
-        [Authorize(Roles = "Administrator,Employer,Teacher")]
         public async Task<IActionResult> Index()
         {
-            var studentClasses = await _context.StudentClasses
-                .Include(sc => sc.Class)
-                .Include(sc => sc.Student)
-                .ToListAsync();
-            return View(studentClasses);
+            var user = await _userManager.GetUserAsync(User);
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+            
+            IQueryable<StudentClass> studentClassesQuery = _context.StudentClasses
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Course)
+                .Include(s => s.Student);
+
+            if (isManager)
+            {
+                // Managers can see all student classes
+                return View(await studentClassesQuery.ToListAsync());
+            }
+            else
+            {
+                // Teachers can only see student classes in their classes
+                var teacher = await _context.Teachers.FindAsync(user.Id);
+                if (teacher != null)
+                {
+                    studentClassesQuery = studentClassesQuery.Where(sc => sc.Class.TeacherId == teacher.Id);
+                }
+                return View(await studentClassesQuery.ToListAsync());
+            }
         }
 
         // GET: StudentClasses/Details/5
-        [Authorize(Roles = "Administrator,Employer,Teacher")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -44,9 +60,13 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+
             var studentClass = await _context.StudentClasses
-                .Include(sc => sc.Class)
-                .Include(sc => sc.Student)
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Course)
+                .Include(s => s.Student)
                 .FirstOrDefaultAsync(m => m.StudentClassID == id);
 
             if (studentClass == null)
@@ -54,19 +74,20 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            // Check if user is authorized to view this student-class
-            var user = await _userManager.GetUserAsync(User);
-            var userRoles = await _userManager.GetRolesAsync(user);
-            if (userRoles.Contains("Teacher") && studentClass.Class.TeacherId != user.Id)
+            if (!isManager)
             {
-                return Forbid();
+                var teacher = await _context.Teachers.FindAsync(user.Id);
+                if (teacher != null && studentClass.Class.TeacherId != teacher.Id)
+                {
+                    return Forbid();
+                }
             }
 
             return View(studentClass);
         }
 
         // GET: StudentClasses/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
             ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name");
@@ -77,8 +98,8 @@ namespace Demo03.Controllers
         // POST: StudentClasses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
-        public async Task<IActionResult> Create([Bind("StudentClassID,ClassID,StudentId")] StudentClass studentClass)
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Create([Bind("StudentClassID,StudentID,ClassID")] StudentClass studentClass)
         {
             if (ModelState.IsValid)
             {
@@ -92,6 +113,7 @@ namespace Demo03.Controllers
         }
 
         // GET: StudentClasses/Edit/5
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -110,11 +132,10 @@ namespace Demo03.Controllers
         }
 
         // POST: StudentClasses/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("StudentClassID,ClassID,StudentId")] StudentClass studentClass)
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Edit(int id, [Bind("StudentClassID,StudentID,ClassID")] StudentClass studentClass)
         {
             if (id != studentClass.StudentClassID)
             {
@@ -147,7 +168,7 @@ namespace Demo03.Controllers
         }
 
         // GET: StudentClasses/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -156,10 +177,9 @@ namespace Demo03.Controllers
             }
 
             var studentClass = await _context.StudentClasses
-                .Include(sc => sc.Class)
-                .Include(sc => sc.Student)
+                .Include(s => s.Class)
+                .Include(s => s.Student)
                 .FirstOrDefaultAsync(m => m.StudentClassID == id);
-
             if (studentClass == null)
             {
                 return NotFound();
@@ -171,7 +191,7 @@ namespace Demo03.Controllers
         // POST: StudentClasses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var studentClass = await _context.StudentClasses.FindAsync(id);

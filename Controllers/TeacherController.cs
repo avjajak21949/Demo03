@@ -24,7 +24,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher
-        [Authorize(Policy = "Manager")]
+        [Authorize(Roles = "Manager,Teacher")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -49,7 +49,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Details/5
-        [Authorize(Policy = "Manager")]
+        [Authorize(Roles = "Manager,Teacher")]
         public async Task<IActionResult> Details(string id)
         {
             if (id == null)
@@ -80,7 +80,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Create
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
             return View();
@@ -89,8 +89,8 @@ namespace Demo03.Controllers
         // POST: Teacher/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
-        public async Task<IActionResult> Create([Bind("FullName,Department,Specialization,Password,Email")] Teacher teacher)
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Create([Bind("FullName,Email,Password")] Teacher teacher)
         {
             if (ModelState.IsValid)
             {
@@ -114,7 +114,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Edit/5
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -141,8 +141,8 @@ namespace Demo03.Controllers
         // POST: Teacher/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Department,Specialization,Email")] Teacher teacher)
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Email")] Teacher teacher)
         {
             if (id != teacher.Id)
             {
@@ -161,8 +161,6 @@ namespace Demo03.Controllers
                 try
                 {
                     existingTeacher.FullName = teacher.FullName;
-                    existingTeacher.Department = teacher.Department;
-                    existingTeacher.Specialization = teacher.Specialization;
                     existingTeacher.Email = teacher.Email;
                     existingTeacher.UserName = teacher.Email;
 
@@ -185,7 +183,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Delete/5
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -213,7 +211,7 @@ namespace Demo03.Controllers
         // POST: Teacher/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var user = await _userManager.GetUserAsync(User);

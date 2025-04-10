@@ -25,7 +25,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes
-        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -55,7 +54,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Details/5
-        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -71,7 +69,7 @@ namespace Demo03.Controllers
                 .Include(c => c.Teacher)
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.ClassID == id);
 
             if (@class == null)
             {
@@ -91,7 +89,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Create
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
             ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name");
@@ -102,7 +100,7 @@ namespace Demo03.Controllers
         // POST: Classes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Create([Bind("Name,CourseID,TeacherId,StartDate,EndDate")] Class @class)
         {
             if (ModelState.IsValid)
@@ -117,7 +115,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Edit/5
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -138,10 +136,10 @@ namespace Demo03.Controllers
         // POST: Classes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CourseID,TeacherId,StartDate,EndDate")] Class @class)
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Edit(int id, [Bind("ClassID,Name,CourseID,TeacherId,StartDate,EndDate")] Class @class)
         {
-            if (id != @class.Id)
+            if (id != @class.ClassID)
             {
                 return NotFound();
             }
@@ -155,7 +153,7 @@ namespace Demo03.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ClassExists(@class.Id))
+                    if (!ClassExists(@class.ClassID))
                     {
                         return NotFound();
                     }
@@ -172,7 +170,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Delete/5
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -183,7 +181,7 @@ namespace Demo03.Controllers
             var @class = await _context.Classes
                 .Include(c => c.Course)
                 .Include(c => c.Teacher)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.ClassID == id);
             if (@class == null)
             {
                 return NotFound();
@@ -195,7 +193,7 @@ namespace Demo03.Controllers
         // POST: Classes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var @class = await _context.Classes.FindAsync(id);
@@ -206,7 +204,7 @@ namespace Demo03.Controllers
 
         private bool ClassExists(int id)
         {
-            return _context.Classes.Any(e => e.Id == id);
+            return _context.Classes.Any(e => e.ClassID == id);
         }
     }
 }

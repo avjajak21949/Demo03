@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Demo03.Models;
 using Demo03.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace Demo03.Controllers
@@ -27,7 +28,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses
-        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -55,7 +55,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Details/5
-        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -89,7 +88,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Create
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
             ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name");
@@ -99,7 +98,7 @@ namespace Demo03.Controllers
         // POST: Courses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Create([Bind("Name,Description,CategoryID")] Course course)
         {
             if (ModelState.IsValid)
@@ -113,7 +112,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Edit/5
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -133,7 +132,7 @@ namespace Demo03.Controllers
         // POST: Courses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CategoryID")] Course course)
         {
             if (id != course.Id)
@@ -166,7 +165,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Delete/5
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -188,7 +187,7 @@ namespace Demo03.Controllers
         // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var course = await _context.Courses.FindAsync(id);

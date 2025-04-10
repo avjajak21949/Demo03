@@ -24,7 +24,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Student
-        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -42,19 +41,13 @@ namespace Demo03.Controllers
             }
             else
             {
-                // Teachers can only see students in their classes
-                var teacher = await _context.Teachers.FindAsync(user.Id);
-                if (teacher != null)
-                {
-                    studentsQuery = studentsQuery.Where(s => s.StudentClasses
-                        .Any(sc => sc.Class.TeacherId == teacher.Id));
-                }
+                // Students can only see their own profile
+                studentsQuery = studentsQuery.Where(s => s.Id == user.Id);
                 return View(await studentsQuery.ToListAsync());
             }
         }
 
         // GET: Student/Details/5
-        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Details(string id)
         {
             if (id == null)
@@ -76,21 +69,16 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            if (!isManager)
+            if (!isManager && student.Id != user.Id)
             {
-                var teacher = await _context.Teachers.FindAsync(user.Id);
-                if (teacher != null && !student.StudentClasses
-                    .Any(sc => sc.Class.TeacherId == teacher.Id))
-                {
-                    return Forbid();
-                }
+                return Forbid();
             }
 
             return View(student);
         }
 
         // GET: Student/Create
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
             return View();
@@ -99,7 +87,7 @@ namespace Demo03.Controllers
         // POST: Student/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Create([Bind("FullName,Email,Password")] Student student)
         {
             if (ModelState.IsValid)
@@ -122,7 +110,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Edit/5
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -141,8 +129,8 @@ namespace Demo03.Controllers
         // POST: Student/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Email")] Student student)
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Email,Password")] Student student)
         {
             if (id != student.Id)
             {
@@ -154,9 +142,20 @@ namespace Demo03.Controllers
                 try
                 {
                     var existingStudent = await _context.Students.FindAsync(id);
+                    if (existingStudent == null)
+                    {
+                        return NotFound();
+                    }
+
                     existingStudent.FullName = student.FullName;
                     existingStudent.Email = student.Email;
                     existingStudent.UserName = student.Email;
+
+                    if (!string.IsNullOrEmpty(student.Password))
+                    {
+                        var token = await _userManager.GeneratePasswordResetTokenAsync(existingStudent);
+                        await _userManager.ResetPasswordAsync(existingStudent, token, student.Password);
+                    }
 
                     await _context.SaveChangesAsync();
                 }
@@ -177,7 +176,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Delete/5
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -199,7 +198,7 @@ namespace Demo03.Controllers
         // POST: Student/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "ManagerPolicy")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var student = await _context.Students.FindAsync(id);
