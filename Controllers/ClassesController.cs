@@ -28,8 +28,26 @@ namespace Demo03.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
+
+            // Check if the user is a student
+            if (User.IsInRole("Student"))
+            {
+                // Get the classes the student is enrolled in
+                var studentClasses = await _context.StudentClasses
+                    .Include(sc => sc.Class) // Include the Class entity first
+                        .ThenInclude(c => c.Course) // Include the Course entity
+                    .Include(sc => sc.Class.StudentClasses) // Include StudentClasses for student count
+                    .Where(sc => sc.StudentId == user.Id)
+                    .Select(sc => sc.Class) // Select the Class entity
+                    .ToListAsync();
+
+                return View(studentClasses);
+            }
+
+            // For other roles, show all classes
             var classes = await _context.Classes
                 .Include(c => c.Course)
+                .Include(c => c.StudentClasses) // Include StudentClasses for student count
                 .ToListAsync();
 
             if (User.IsInRole("Teacher"))

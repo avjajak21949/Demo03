@@ -73,6 +73,11 @@ namespace Demo03.Controllers
             return Json(courseCategories);
         }
     }
+    public class ClassStudentCount
+    {
+        public string ClassName { get; set; }
+        public int StudentCount { get; set; }
+    }
 
     public class DashboardViewModel
     {
