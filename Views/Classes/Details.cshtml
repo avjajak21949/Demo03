@@ -72,6 +72,12 @@
         </div>
         <div class="card-footer text-end">
             <a asp-controller="Schedules" asp-action="Create" asp-route-classId="@Model.ClassID" class="btn btn-primary">Add Schedule</a>
+            @if (User.IsInRole("Teacher"))
+            {
+                <a asp-controller="Documents" asp-action="Upload" asp-route-classID="@Model.ClassID" class="btn btn-success">
+                    <i class="fas fa-paperclip"></i> Attach Document
+                </a>
+            }
         </div>
     </div>
 </div>

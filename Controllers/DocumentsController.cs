@@ -49,9 +49,9 @@ namespace Demo03.Controllers
         }
 
         // GET: Documents/Upload
-        public IActionResult Upload()
+        public IActionResult Upload(int? classID)
         {
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name");
+            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", classID);
             return View();
         }
 

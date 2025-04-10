@@ -52,6 +52,12 @@
                             <a asp-action="Details" asp-route-id="@item.ClassID" class="btn btn-sm btn-outline-secondary">
                                 <i class="fas fa-info-circle"></i> Details
                             </a>
+                            @if (User.IsInRole("Teacher"))
+                            {
+                                <a asp-controller="Documents" asp-action="Upload" asp-route-classID="@item.ClassID" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-paperclip"></i> Attach Document
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>
