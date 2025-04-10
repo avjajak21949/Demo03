@@ -102,6 +102,12 @@
             }
         </div>
         <div class="card-body">
+            @if (User.IsInRole("Teacher"))
+            {
+                <a asp-controller="Attendance" asp-action="TakeAttendance" asp-route-classID="@Model.ClassID" class="btn btn-success">
+                    Take Attendance
+                </a>
+            }
             @if (Model.StudentClasses != null && Model.StudentClasses.Any())
             {
                 <div class="table-responsive">
