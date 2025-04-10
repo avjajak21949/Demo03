@@ -12,7 +12,7 @@ using System.Collections;
 
 namespace Demo03.Controllers
 {
-    [Authorize]
+    [Authorize (Roles = "Manager")]
     public class DashboardController : Controller
     {
         private readonly ApplicationDbContext _context;

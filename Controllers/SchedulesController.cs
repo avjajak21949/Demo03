@@ -23,7 +23,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Schedules
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             var schedules = await _context.Schedules
@@ -34,7 +33,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Schedules/Details/5
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -165,7 +163,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Schedules/Calendar
-        [Authorize(Roles = "Manager,Teacher")]
         public async Task<IActionResult> Calendar()
         {
             var schedules = await _context.Schedules

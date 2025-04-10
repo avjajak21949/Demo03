@@ -25,7 +25,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -55,7 +54,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Details/5
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -103,14 +101,33 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Create([Bind("Name,CourseID,TeacherId,StartDate,EndDate")] Class @class)
+        public async Task<IActionResult> Create([Bind("Name,CourseID,TeacherId,StartDate,EndDate,ScheduleInfo,MaxCapacity")] Class @class)
         {
             if (ModelState.IsValid)
             {
+                // Add debug information
+                foreach (var state in ModelState)
+                {
+                    if (state.Value.Errors.Count > 0)
+                    {
+                        Console.WriteLine($"Field {state.Key} has errors: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
+                    }
+                }
+                
                 _context.Add(@class);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            
+            // Log all model state errors
+            foreach (var state in ModelState)
+            {
+                if (state.Value.Errors.Count > 0)
+                {
+                    Console.WriteLine($"Field {state.Key} has errors: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
+                }
+            }
+            
             ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name", @class.CourseID);
             ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "FullName", @class.TeacherId);
             return View(@class);
@@ -139,7 +156,7 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Edit(int id, [Bind("ClassID,Name,CourseID,TeacherId,StartDate,EndDate")] Class @class)
+        public async Task<IActionResult> Edit(int id, [Bind("ClassID,Name,CourseID,TeacherId,ScheduleInfo,MaxCapacity")] Class @class)
         {
             if (id != @class.ClassID)
             {
@@ -150,8 +167,17 @@ namespace Demo03.Controllers
             {
                 try
                 {
+                    // Get the original class to preserve certain values
+                    var originalClass = await _context.Classes.AsNoTracking().FirstOrDefaultAsync(c => c.ClassID == id);
+                    if (originalClass != null)
+                    {
+                        // Preserve the CreatedByEmployerId
+                        @class.CreatedByEmployerId = originalClass.CreatedByEmployerId;
+                    }
+
                     _context.Update(@class);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -164,8 +190,23 @@ namespace Demo03.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    // Log the exception
+                    Console.WriteLine($"Error updating class: {ex.Message}");
+                    ModelState.AddModelError("", $"Unable to save changes: {ex.Message}");
+                }
             }
+
+            // Log validation errors
+            foreach (var state in ModelState)
+            {
+                if (state.Value.Errors.Count > 0)
+                {
+                    Console.WriteLine($"Field {state.Key} has errors: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
+                }
+            }
+
             ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name", @class.CourseID);
             ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "FullName", @class.TeacherId);
             return View(@class);

@@ -28,12 +28,10 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
             var isManager = await _userManager.IsInRoleAsync(user, "Manager");
-            
             IQueryable<Course> coursesQuery = _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Classes);
@@ -56,7 +54,6 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Details/5
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -70,7 +67,7 @@ namespace Demo03.Controllers
             var course = await _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Classes)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.CourseID == id);
 
             if (course == null)
             {
@@ -93,7 +90,7 @@ namespace Demo03.Controllers
         [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
-            ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name");
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name");
             return View();
         }
 
@@ -101,15 +98,51 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Create([Bind("Name,Description,CategoryID")] Course course)
+        public async Task<IActionResult> Create([Bind("Name,CourseCode,Description,CategoryID,CreditHours,Place,Time,Price,Duration")] Course course)
         {
+            // Log all model state errors for debugging
+            if (!ModelState.IsValid)
+            {
+                foreach (var state in ModelState)
+                {
+                    if (state.Value.Errors.Count > 0)
+                    {
+                        _logger.LogError($"Error in {state.Key}: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
+                        // Also add to model state to display in UI
+                        ModelState.AddModelError("", $"Error in {state.Key}: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
+                    }
+                }
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(course);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // Set default values for required fields if not provided
+                    if (string.IsNullOrEmpty(course.Duration))
+                    {
+                        course.Duration = "3 months"; // Default duration
+                    }
+                    
+                    // Set the employer ID if needed
+                    if (User.IsInRole("Manager"))
+                    {
+                        course.CreatedByEmployerId = _userManager.GetUserId(User);
+                    }
+                    
+                    _context.Add(course);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating course");
+                    ModelState.AddModelError("", $"An error occurred while creating the course: {ex.Message}");
+                }
             }
-            ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name", course.CategoryID);
+            
+            // If we got this far, something failed, redisplay form
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name", course.CategoryID);
             return View(course);
         }
 
@@ -127,7 +160,7 @@ namespace Demo03.Controllers
             {
                 return NotFound();
             }
-            ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name", course.CategoryID);
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name", course.CategoryID);
             return View(course);
         }
 
@@ -135,23 +168,44 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CategoryID")] Course course)
+        public async Task<IActionResult> Edit(int id, [Bind("CourseID,Name,CourseCode,Description,CategoryID,CreditHours,Place,Time,Price,Duration")] Course course)
         {
-            if (id != course.Id)
+            if (id != course.CourseID)
             {
                 return NotFound();
+            }
+
+            // Log all model state errors for debugging
+            if (!ModelState.IsValid)
+            {
+                foreach (var state in ModelState)
+                {
+                    if (state.Value.Errors.Count > 0)
+                    {
+                        _logger.LogError($"Error in {state.Key}: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
+                        // Also add to model state to display in UI
+                        ModelState.AddModelError("", $"Error in {state.Key}: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
+                    }
+                }
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Make sure the employer ID is preserved
+                    var existingCourse = await _context.Courses.AsNoTracking().FirstOrDefaultAsync(c => c.CourseID == id);
+                    if (existingCourse != null)
+                    {
+                        course.CreatedByEmployerId = existingCourse.CreatedByEmployerId;
+                    }
+                    
                     _context.Update(course);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CourseExists(course.Id))
+                    if (!CourseExists(course.CourseID))
                     {
                         return NotFound();
                     }
@@ -160,9 +214,16 @@ namespace Demo03.Controllers
                         throw;
                     }
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating course");
+                    ModelState.AddModelError("", $"An error occurred while updating the course: {ex.Message}");
+                    ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name", course.CategoryID);
+                    return View(course);
+                }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name", course.CategoryID);
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name", course.CategoryID);
             return View(course);
         }
 
@@ -177,7 +238,7 @@ namespace Demo03.Controllers
 
             var course = await _context.Courses
                 .Include(c => c.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.CourseID == id);
             if (course == null)
             {
                 return NotFound();
@@ -200,7 +261,7 @@ namespace Demo03.Controllers
 
         private bool CourseExists(int id)
         {
-            return _context.Courses.Any(e => e.Id == id);
+            return _context.Courses.Any(e => e.CourseID == id);
         }
     }
 }
