@@ -8,12 +8,15 @@
     <div class="schedule-header">
         <h2>@ViewData["Title"]</h2>
         <div class="header-actions">
-            <a asp-action="Create" class="btn btn-add">
-                <i class="fas fa-plus"></i> Add New Schedule
-            </a>
-            <a asp-action="Calendar" class="btn btn-calendar">
-                <i class="fas fa-calendar-alt"></i> View Calendar
-            </a>
+            @if (User.IsInRole("Manager"))
+            {
+                <a asp-action="Create" class="btn btn-add">
+                    <i class="fas fa-plus"></i> Add New Schedule
+                </a>
+                <a asp-action="Calendar" class="btn btn-calendar">
+                    <i class="fas fa-calendar-alt"></i> View Calendar
+                </a>
+            }
         </div>
     </div>
 
@@ -41,14 +44,17 @@
                         <td>@item.DaysOfWeek</td>
                         <td>@item.Location</td>
                         <td class="action-buttons">
-                            <a asp-action="Edit" asp-route-id="@item.ScheduleID" class="btn-edit" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
+                            @if (User.IsInRole("Manager"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.ScheduleID" class="btn-edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.ScheduleID" class="btn-delete" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            }
                             <a asp-action="Details" asp-route-id="@item.ScheduleID" class="btn-details" title="Details">
                                 <i class="fas fa-info-circle"></i>
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.ScheduleID" class="btn-delete" title="Delete">
-                                <i class="fas fa-trash-alt"></i>
                             </a>
                         </td>
                     </tr>
