@@ -9,6 +9,7 @@ using Demo03.Data;
 using Demo03.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Demo03.Services;
 
 namespace Demo03.Controllers
 {
@@ -17,11 +18,16 @@ namespace Demo03.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IEmailService _emailService;
 
-        public StudentClassesController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public StudentClassesController(
+            ApplicationDbContext context, 
+            UserManager<IdentityUser> userManager,
+            IEmailService emailService)
         {
             _context = context;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         // GET: StudentClasses
@@ -84,6 +90,33 @@ namespace Demo03.Controllers
             {
                 _context.Add(studentClass);
                 await _context.SaveChangesAsync();
+
+                // Get class and student details for the email
+                var classDetails = await _context.Classes
+                    .Include(c => c.Course)
+                    .Include(c => c.Teacher)
+                    .FirstOrDefaultAsync(c => c.ClassID == studentClass.ClassID);
+
+                var student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.Id == studentClass.StudentId);
+
+                if (classDetails != null && student != null)
+                {
+                    var emailSubject = "New Class Enrollment Notification";
+                    var emailBody = $@"
+                        <h2>Class Enrollment Notification</h2>
+                        <p>Dear {student.FullName},</p>
+                        <p>You have been enrolled in a new class:</p>
+                        <p><strong>Class Name:</strong> {classDetails.Name}</p>
+                        <p><strong>Course:</strong> {classDetails.Course?.Name}</p>
+                        <p><strong>Teacher:</strong> {classDetails.Teacher?.FullName}</p>
+                        <p><strong>Schedule:</strong> {classDetails.ScheduleInfo}</p>
+                        <p>You can view your class details and materials by logging into your account.</p>
+                        <p>Best regards,<br>E-Learning Team</p>";
+
+                    await _emailService.SendEmailAsync(student.Email, emailSubject, emailBody);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", studentClass.ClassID);
