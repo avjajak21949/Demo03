@@ -32,77 +32,6 @@
             background-image: linear-gradient(135deg, var(--light-blue) 0%, var(--white) 100%);
         }
 
-        .navbar {
-            background-color: var(--white) !important;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 0.8rem 0;
-        }
-
-        .navbar-brand {
-            font-weight: 600;
-            color: var(--primary-blue) !important;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .navbar-brand i {
-            font-size: 1.8rem;
-        }
-
-        .nav-link {
-            color: #333 !important;
-            font-weight: 500;
-            padding: 0.5rem 1rem !important;
-            margin: 0 0.2rem;
-            border-radius: 4px;
-            transition: all 0.3s;
-            font-size: 0.85rem;
-            white-space: nowrap;
-        }
-
-        .nav-link.small {
-            font-size: 0.8rem;
-            padding: 0.4rem 0.8rem !important;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            color: var(--primary-blue) !important;
-            background-color: var(--light-blue);
-        }
-
-        .navbar-toggler {
-            border: none;
-            padding: 0.5rem;
-        }
-
-        .navbar-toggler:focus {
-            box-shadow: 0 0 0 2px var(--light-blue);
-        }
-
-        /* Login/Register buttons */
-        .nav-auth-btn {
-            font-size: 0.85rem;
-            padding: 0.5rem 1rem !important;
-            margin-left: 0.5rem;
-            white-space: nowrap;
-        }
-        
-        .nav-auth-btn.login {
-            color: var(--primary-blue) !important;
-            border: 1px solid var(--primary-blue);
-        }
-        
-        .nav-auth-btn.register {
-            background-color: var(--primary-blue);
-            color: white !important;
-        }
-        
-        .nav-auth-btn.register:hover {
-            background-color: var(--dark-blue);
-        }
-
         .register-container {
             max-width: 1000px;
             width: 100%;
@@ -123,12 +52,28 @@
             color: var(--white);
             padding: 1.5rem;
             text-align: center;
+            position: relative;
         }
 
         .register-header h1 {
             margin: 0;
             font-weight: 600;
             font-size: 1.8rem;
+        }
+
+        .home-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--white);
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .home-btn:hover {
+            color: var(--light-blue);
+            transform: translateY(-50%) scale(1.1);
         }
 
         .form-section {
@@ -254,128 +199,25 @@
             text-decoration: underline;
         }
 
-        @@media (max-width: 991.98px) {
-            .navbar-collapse {
-                padding: 1rem 0;
-                max-height: 70vh;
-                overflow-y: auto;
-            }
-            
-            .nav-link {
-                margin: 0.2rem 0;
-                padding: 0.5rem 1rem !important;
-                white-space: normal;
-            }
-
-            .navbar-nav {
-                margin-top: 0.5rem;
-            }
-            
-            .nav-auth-btn {
-                margin: 0.5rem 0;
-                display: inline-block;
-                width: 100%;
-                text-align: center;
-            }
-        }
-
         @@media (max-width: 768px) {
             .register-container {
                 padding: 10px;
             }
             
-            .navbar-brand {
-                font-size: 1.3rem;
-            }
-            .navbar-brand i {
-                font-size: 1.5rem;
-            }
-            
-            .nav-link {
-                font-size: 0.8rem;
-            }
-            
-            .nav-link.small {
-                font-size: 0.75rem;
+            .home-btn {
+                left: 10px;
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="fas fa-graduation-cap"></i> Editern
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
-                        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Dashboard" asp-action="Index">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Courses" asp-action="Index">
-                                <i class="fas fa-book"></i> Courses
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Classes" asp-action="Index">
-                                <i class="fas fa-users"></i> Classes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Schedules" asp-action="Index">
-                                <i class="fas fa-calendar-alt"></i> Schedules
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Meetings" asp-action="Index">
-                                <i class="fas fa-video"></i> Online Classes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link small" asp-area="" asp-controller="Teacher" asp-action="Index">
-                                <i class="fas fa-chalkboard-teacher"></i> Teachers
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link small" asp-area="" asp-controller="Student" asp-action="Index">
-                                <i class="fas fa-user-graduate"></i> Students
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link small" asp-area="" asp-controller="Categories" asp-action="Index">
-                                <i class="fas fa-tags"></i> Categories
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link small" asp-area="" asp-controller="Documents" asp-action="Index">
-                                <i class="fas fa-file-alt"></i> Documents
-                            </a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link nav-auth-btn login" asp-area="Identity" asp-page="/Account/Login">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-auth-btn register" asp-area="Identity" asp-page="/Account/Register">Register</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-
     <div class="register-container">
         <div class="register-card">
             <div class="register-header">
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="home-btn">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
                 <h1><i class="fas fa-user-plus"></i> @ViewData["Title"]</h1>
             </div>
 
@@ -467,15 +309,5 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        // Tự động đóng navbar khi click trên mobile
-        $(document).ready(function() {
-            $('.navbar-nav>li>a').on('click', function(){
-                if($(window).width() < 992) {
-                    $('.navbar-collapse').collapse('hide');
-                }
-            });
-        });
-    </script>
 </body>
 </html>
