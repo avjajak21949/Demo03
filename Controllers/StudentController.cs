@@ -1,0 +1,232 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Demo03.Models;
+using Demo03.Data;
+using Microsoft.AspNetCore.Authorization;
+
+namespace Demo03.Controllers
+{
+    [Authorize]
+    public class StudentController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+
+        public StudentController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
+
+        // GET: Student
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Index()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+            
+            IQueryable<Student> studentsQuery = _context.Students
+                .Include(s => s.StudentClasses)
+                    .ThenInclude(sc => sc.Class)
+                        .ThenInclude(c => c.Course);
+
+            if (isManager)
+            {
+                // Managers can see all students
+                return View(await studentsQuery.ToListAsync());
+            }
+            else
+            {
+                // Students can only see their own profile
+                studentsQuery = studentsQuery.Where(s => s.Id == user.Id);
+                return View(await studentsQuery.ToListAsync());
+            }
+        }
+
+        // GET: Student/Details/5
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Details(string id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+
+            var student = await _context.Students
+                .Include(s => s.StudentClasses)
+                    .ThenInclude(sc => sc.Class)
+                        .ThenInclude(c => c.Course)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            if (!isManager && student.Id != user.Id)
+            {
+                return Forbid();
+            }
+
+            return View(student);
+        }
+
+        // GET: Student/Create
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Create()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+            Console.WriteLine($"Current user: {user?.UserName}, Roles: {string.Join(", ", roles)}");
+            return View();
+        }
+
+        // POST: Student/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Create([Bind("FullName,Email,Password,StudentNumber,Department")] Student student)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+            Console.WriteLine($"Current user: {user?.UserName}, Roles: {string.Join(", ", roles)}");
+
+            if (ModelState.IsValid)
+            {
+                student.UserName = student.Email;
+                student.EmailConfirmed = true;
+                
+                var result = await _userManager.CreateAsync(student, student.Password);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(student, "Student");
+                    return RedirectToAction(nameof(Index));
+                }
+                foreach (var error in result.Errors)
+                {
+                    Console.WriteLine($"Error creating student: {error.Description}");
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            else
+            {
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"Model validation error: {error.ErrorMessage}");
+                }
+            }
+            return View(student);
+        }
+
+        // GET: Student/Edit/5
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Edit(string id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+            return View(student);
+        }
+
+        // POST: Student/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Email,Password")] Student student)
+        {
+            if (id != student.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var existingStudent = await _context.Students.FindAsync(id);
+                    if (existingStudent == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existingStudent.FullName = student.FullName;
+                    existingStudent.Email = student.Email;
+                    existingStudent.UserName = student.Email;
+
+                    if (!string.IsNullOrEmpty(student.Password))
+                    {
+                        var token = await _userManager.GeneratePasswordResetTokenAsync(existingStudent);
+                        await _userManager.ResetPasswordAsync(existingStudent, token, student.Password);
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!StudentExists(student.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(student);
+        }
+
+        // GET: Student/Delete/5
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var student = await _context.Students
+                .Include(s => s.StudentClasses)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            return View(student);
+        }
+
+        // POST: Student/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> DeleteConfirmed(string id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            _context.Students.Remove(student);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool StudentExists(string id)
+        {
+            return _context.Students.Any(e => e.Id == id);
+        }
+    }
+} 

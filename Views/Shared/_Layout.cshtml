@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - School Management System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+    <style>
+        :root {
+            --primary-blue: #1a73e8;
+            --light-blue: #e8f0fe;
+            --dark-blue: #0d47a1;
+            --white: #ffffff;
+        }
+
+        body {
+            background-color: var(--white);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: var(--white) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.8rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--primary-blue) !important;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+        }
+
+        .nav-link {
+            color: #333 !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.2rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .nav-link.small {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem !important;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-blue) !important;
+            background-color: var(--light-blue);
+        }
+
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 2px var(--light-blue);
+        }
+
+        .container {
+            max-width: 1400px;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        footer {
+            background-color: var(--white);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+
+        .footer a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: var(--dark-blue);
+            text-decoration: underline;
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--dark-blue);
+            border-color: var(--dark-blue);
+        }
+
+        /* Login/Register buttons */
+        .nav-auth-btn {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem !important;
+            margin-left: 0.5rem;
+            white-space: nowrap;
+        }
+        
+        .nav-auth-btn.login {
+            color: var(--primary-blue) !important;
+            border: 1px solid var(--primary-blue);
+        }
+        
+        .nav-auth-btn.register {
+            background-color: var(--primary-blue);
+            color: white !important;
+        }
+        
+        .nav-auth-btn.register:hover {
+            background-color: var(--dark-blue);
+        }
+
+        /* Responsive improvements */
+        @@media (max-width: 1199.98px) {
+            .navbar-nav {
+                flex-wrap: wrap;
+            }
+            .nav-item {
+                margin-bottom: 0.2rem;
+            }
+        }
+
+        @@media (max-width: 991.98px) {
+            .navbar-collapse {
+                padding: 1rem 0;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+            
+            .nav-link {
+                margin: 0.2rem 0;
+                padding: 0.5rem 1rem !important;
+                white-space: normal;
+            }
+
+            .navbar-nav {
+                margin-top: 0.5rem;
+            }
+            
+            .nav-auth-btn {
+                margin: 0.5rem 0;
+                display: inline-block;
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+            .navbar-brand i {
+                font-size: 1.5rem;
+            }
+            
+            .nav-link {
+                font-size: 0.8rem;
+            }
+            
+            .nav-link.small {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Custom scrollbar for dropdown menu */
+        .navbar-collapse::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .navbar-collapse::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .navbar-collapse::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        .navbar-collapse::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-graduation-cap"></i> Editern
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
+                        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Dashboard" asp-action="Index">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Courses" asp-action="Index">
+                                <i class="fas fa-book"></i> Courses
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Classes" asp-action="Index">
+                                <i class="fas fa-users"></i> Classes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Schedules" asp-action="Index">
+                                <i class="fas fa-calendar-alt"></i> Schedules
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Meetings" asp-action="Index">
+                                <i class="fas fa-video"></i> Online Classes
+                            </a>
+                        </li>
+                        <!-- Thêm các nút mới với kích thước nhỏ hơn -->
+                        <li class="nav-item">
+                            <a class="nav-link small" asp-area="" asp-controller="Teacher" asp-action="Index">
+                                <i class="fas fa-chalkboard-teacher"></i> Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small" asp-area="" asp-controller="Student" asp-action="Index">
+                                <i class="fas fa-user-graduate"></i> Students
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small" asp-area="" asp-controller="Categories" asp-action="Index">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small" asp-area="" asp-controller="Documents" asp-action="Index">
+                                <i class="fas fa-file-alt"></i> Documents
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link nav-auth-btn login" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-auth-btn register" asp-area="Identity" asp-page="/Account/Register">Register</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @await Html.PartialAsync("_ChatBox")
+
+    <footer class="footer">
+        <div class="container text-center">
+            &copy; @DateTime.Now.Year - School Management System - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Tự động đóng navbar khi click trên mobile
+        $(document).ready(function() {
+            $('.navbar-nav>li>a').on('click', function(){
+                if($(window).width() < 992) {
+                    $('.navbar-collapse').collapse('hide');
+                }
+            });
+            
+            // Thêm hiệu ứng smooth scroll cho dropdown menu
+            $('.navbar-collapse').on('shown.bs.collapse', function() {
+                this.scrollTo(0, 0);
+            });
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

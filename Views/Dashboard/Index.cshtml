@@ -1,0 +1,221 @@
+@model Demo03.Controllers.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container">
+    <h1 class="mb-4">Dashboard</h1>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Courses</h5>
+                    <p class="card-text display-4">@Model.TotalCourses</p>
+                    <a asp-controller="Courses" asp-action="Index" class="btn btn-primary">View Courses</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Classes</h5>
+                    <p class="card-text display-4">@Model.TotalClasses</p>
+                    <a asp-controller="Classes" asp-action="Index" class="btn btn-primary">View Classes</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Course Categories</h5>
+                    <div class="chart-container" style="position: relative; height:200px;">
+                        <canvas id="courseCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Schedule -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Today's Schedule</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TodaySchedules.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Course</th>
+                                        <th>Time</th>
+                                        <th>Location</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var schedule in Model.TodaySchedules)
+                                    {
+                                        <tr>
+                                            <td>@schedule.Class.Name</td>
+                                            <td>@schedule.Class.Course.Name</td>
+                                            <td>@schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>@schedule.Location</td>
+                                            <td>
+                                                <a asp-controller="Schedules" asp-action="Details" asp-route-id="@schedule.ScheduleID" class="btn btn-sm btn-info">Details</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>No schedules for today.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Schedules -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Upcoming Schedules</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.UpcomingSchedules.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Class</th>
+                                        <th>Course</th>
+                                        <th>Time</th>
+                                        <th>Location</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var schedule in Model.UpcomingSchedules)
+                                    {
+                                        <tr>
+                                            <td>@schedule.StartDate.ToString("MM/dd/yyyy")</td>
+                                            <td>@schedule.Class.Name</td>
+                                            <td>@schedule.Class.Course.Name</td>
+                                            <td>@schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>@schedule.Location</td>
+                                            <td>
+                                                <a asp-controller="Schedules" asp-action="Details" asp-route-id="@schedule.ScheduleID" class="btn btn-sm btn-info">Details</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>No upcoming schedules.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize the pie chart
+            const ctx = document.getElementById('courseCategoryChart').getContext('2d');
+            let courseCategoryChart;
+            
+            // Function to update the chart with new data
+            function updateChart(data) {
+                const labels = data.map(item => item.categoryName);
+                const counts = data.map(item => item.count);
+                
+                // Generate random colors for each category
+                const backgroundColors = labels.map(() => 
+                    `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.7)`
+                );
+                
+                // Destroy existing chart if it exists
+                if (courseCategoryChart) {
+                    courseCategoryChart.destroy();
+                }
+                
+                // Create new chart
+                courseCategoryChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: counts,
+                            backgroundColor: backgroundColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    boxWidth: 15,
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Initial data from the server
+            const initialData = @Json.Serialize(Model.CourseCategories);
+            updateChart(initialData);
+            
+            // Set up real-time updates (every 30 seconds)
+            setInterval(function() {
+                $.ajax({
+                    url: '@Url.Action("GetCourseCategories", "Dashboard")',
+                    type: 'GET',
+                    success: function(data) {
+                        updateChart(data);
+                    },
+                    error: function(error) {
+                        console.error('Error fetching course categories:', error);
+                    }
+                });
+            }, 30000); // Update every 30 seconds
+        });
+    </script>
+} 

@@ -1,0 +1,53 @@
+﻿@model Demo03.Models.Class
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+<div>
+    <h4>Class Schedules</h4>
+    @if (Model.Schedules != null && Model.Schedules.Any())
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Days</th>
+                    <th>Time</th>
+                    <th>Location</th>
+                    <th>Dates</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var schedule in Model.Schedules)
+                {
+                    <tr>
+                        <td>@schedule.DaysOfWeek</td>
+                        <td>@schedule.StartTime.ToString("hh:mm") - @schedule.EndTime.ToString("hh:mm")</td>
+                        <td>@schedule.Location</td>
+                        <td>@schedule.StartDate.ToShortDateString() - @schedule.EndDate.ToShortDateString()</td>
+                        <td>
+                            <a asp-controller="Schedules" asp-action="Details" asp-route-id="@schedule.ScheduleID">Details</a> |
+                            <a asp-controller="Schedules" asp-action="Edit" asp-route-id="@schedule.ScheduleID">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No schedules found for this class.</p>
+    }
+
+    <p>
+        <a asp-controller="Schedules" asp-action="Create" asp-route-classId="@Model.ClassID" class="btn btn-primary">Add Schedule</a>
+    </p>
+</div>
+
+<!-- Keep the existing action links -->
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.ClassID">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
