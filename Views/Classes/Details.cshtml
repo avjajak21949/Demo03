@@ -1,53 +1,77 @@
 ﻿@model Demo03.Models.Class
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Class Details";
 }
 
-<h1>Details</h1>
-<div>
-    <h4>Class Schedules</h4>
-    @if (Model.Schedules != null && Model.Schedules.Any())
-    {
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Days</th>
-                    <th>Time</th>
-                    <th>Location</th>
-                    <th>Dates</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var schedule in Model.Schedules)
-                {
-                    <tr>
-                        <td>@schedule.DaysOfWeek</td>
-                        <td>@schedule.StartTime.ToString("hh:mm") - @schedule.EndTime.ToString("hh:mm")</td>
-                        <td>@schedule.Location</td>
-                        <td>@schedule.StartDate.ToShortDateString() - @schedule.EndDate.ToShortDateString()</td>
-                        <td>
-                            <a asp-controller="Schedules" asp-action="Details" asp-route-id="@schedule.ScheduleID">Details</a> |
-                            <a asp-controller="Schedules" asp-action="Edit" asp-route-id="@schedule.ScheduleID">Edit</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>No schedules found for this class.</p>
-    }
+<div class="container mt-4">
+    <!-- Class Details Card -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title mb-0">@Model.Name</h2>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Course:</dt>
+                <dd class="col-sm-8">@Model.Course?.Name</dd>
 
-    <p>
-        <a asp-controller="Schedules" asp-action="Create" asp-route-classId="@Model.ClassID" class="btn btn-primary">Add Schedule</a>
-    </p>
-</div>
+                <dt class="col-sm-4">Schedule Info:</dt>
+                <dd class="col-sm-8">@Model.ScheduleInfo</dd>
 
-<!-- Keep the existing action links -->
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.ClassID">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+                <dt class="col-sm-4">Maximum Capacity:</dt>
+                <dd class="col-sm-8">@Model.MaxCapacity</dd>
+            </dl>
+            <div class="d-flex justify-content-end">
+                <a asp-action="Edit" asp-route-id="@Model.ClassID" class="btn btn-warning me-2">Edit Class</a>
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedules Card -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Class Schedules</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Schedules != null && Model.Schedules.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Days</th>
+                                <th>Time</th>
+                                <th>Location</th>
+                                <th>Dates</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var schedule in Model.Schedules)
+                            {
+                                <tr>
+                                    <td>@schedule.DaysOfWeek</td>
+                                    <td>@schedule.StartTime.ToString("hh\\:mm") - @schedule.EndTime.ToString("hh\\:mm")</td>
+                                    <td>@schedule.Location</td>
+                                    <td>@schedule.StartDate.ToShortDateString() - @schedule.EndDate.ToShortDateString()</td>
+                                    <td>
+                                        <a asp-controller="Schedules" asp-action="Details" asp-route-id="@schedule.ScheduleID" class="btn btn-sm btn-info me-1">Details</a>
+                                        <a asp-controller="Schedules" asp-action="Edit" asp-route-id="@schedule.ScheduleID" class="btn btn-sm btn-warning">Edit</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="mb-0">No schedules found for this class.</p>
+            }
+        </div>
+        <div class="card-footer text-end">
+            <a asp-controller="Schedules" asp-action="Create" asp-route-classId="@Model.ClassID" class="btn btn-primary">Add Schedule</a>
+        </div>
+    </div>
 </div>

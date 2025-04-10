@@ -54,7 +54,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public IActionResult Create()
         {
             ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name");
@@ -64,7 +64,7 @@ namespace Demo03.Controllers
         // POST: Courses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Create([Bind("Name,Description,CourseCode,CreditHours,Place,Time,Price,CategoryID")] Course course)
         {
             try
@@ -101,7 +101,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Edit/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -128,7 +128,7 @@ namespace Demo03.Controllers
         // POST: Courses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Edit(int id, [Bind("CourseID,Name,Description,CourseCode,CreditHours,Place,Time,Price,CategoryID")] Course course)
         {
             if (id != course.CourseID)
@@ -173,7 +173,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -196,7 +196,7 @@ namespace Demo03.Controllers
         // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var course = await _context.Courses.FindAsync(id);

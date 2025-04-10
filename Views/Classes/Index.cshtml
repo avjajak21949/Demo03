@@ -1,53 +1,61 @@
 ﻿@model IEnumerable<Demo03.Models.Class>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Classes";
 }
 
-<h1>Index</h1>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Classes (@(Model?.Count() ?? 0))</h2>
+        @if (User.IsInRole("Employer") || User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New Class
+            </a>
+        }
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Course)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ScheduleInfo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MaxCapacity)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Course.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ScheduleInfo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaxCapacity)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ClassID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ClassID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ClassID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    @if (Model == null || !Model.Any())
+    {
+        <p class="text-danger">No classes found. Please check your database or data retrieval logic.</p>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@item.Name</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Schedule: @item.ScheduleInfo</h6>
+                            <p class="card-text">
+                                Course: @(item.Course != null ? item.Course.Name : "No course info")
+                            </p>
+                            <p class="card-text">
+                                @(item.Course != null ? item.Course.Description : "")
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-info">@item.MaxCapacity Max Capacity</span>
+                                <span class="badge bg-secondary">
+                                    @((item.StudentClasses != null) ? item.StudentClasses.Count() : 0) Students
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            @if (User.IsInRole("Employer") || User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.ClassID" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            }
+                            <a asp-action="Details" asp-route-id="@item.ClassID" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -30,7 +30,6 @@ namespace Demo03.Controllers
             var user = await _userManager.GetUserAsync(User);
             var classes = await _context.Classes
                 .Include(c => c.Course)
-                .Include(c => c.Teacher)
                 .ToListAsync();
 
             if (User.IsInRole("Teacher"))
@@ -51,7 +50,6 @@ namespace Demo03.Controllers
 
             var @class = await _context.Classes
                 .Include(c => c.Course)
-                .Include(c => c.Teacher)
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
                 .Include(c => c.Schedules)
@@ -66,7 +64,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Create()
         {
             ViewData["CourseID"] = new SelectList(_context.Courses, "CourseID", "Name");
@@ -78,7 +76,7 @@ namespace Demo03.Controllers
         // POST: Classes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Create([Bind("ClassID,CourseID,TeacherId,Name,ScheduleInfo,MaxCapacity")] Class @class)
         {
             if (ModelState.IsValid)
@@ -94,7 +92,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Edit/5
-        [Authorize(Roles = "Administrator,Employer,Teacher")]
+        [Authorize(Roles = "Admin,Employer,Teacher")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -104,9 +102,8 @@ namespace Demo03.Controllers
 
             var @class = await _context.Classes
                 .Include(c => c.Course)
-                .Include(c => c.Teacher)
                 .FirstOrDefaultAsync(m => m.ClassID == id);
-                
+
             if (@class == null)
             {
                 return NotFound();
@@ -127,7 +124,7 @@ namespace Demo03.Controllers
         // POST: Classes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer,Teacher")]
+        [Authorize(Roles = "Admin,Employer,Teacher")]
         public async Task<IActionResult> Edit(int id, [Bind("ClassID,CourseID,TeacherId,Name,ScheduleInfo,MaxCapacity")] Class @class)
         {
             if (id != @class.ClassID)
@@ -184,7 +181,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -194,7 +191,6 @@ namespace Demo03.Controllers
 
             var @class = await _context.Classes
                 .Include(c => c.Course)
-                .Include(c => c.Teacher)
                 .FirstOrDefaultAsync(m => m.ClassID == id);
 
             if (@class == null)
@@ -208,7 +204,7 @@ namespace Demo03.Controllers
         // POST: Classes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var @class = await _context.Classes.FindAsync(id);
