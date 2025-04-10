@@ -82,24 +82,144 @@
             padding: 2rem 0;
         }
 
+        /* Optimized Footer Styles */
         footer {
-            background-color: var(--white);
+            background-color: #f8f9fa;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 1.5rem 0;
+            padding: 2rem 0;
             margin-top: auto;
         }
-
-        .footer a {
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        .footer-column {
+            padding: 0 1rem;
+        }
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
             color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 1.25rem;
+            text-decoration: none;
+        }
+        .footer-logo i {
+            font-size: 1.8rem;
+        }
+        .footer-slogan {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .footer-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #343a40;
+        }
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #495057;
+            transition: all 0.3s;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+        .social-link:hover {
+            transform: translateY(-3px);
+        }
+        .social-link.facebook:hover {
+            background-color: #1877f2;
+            color: white;
+        }
+        .social-link.twitter:hover {
+            background-color: #1da1f2;
+            color: white;
+        }
+        .social-link.instagram:hover {
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+            color: white;
+        }
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .contact-item i {
+            color: var(--primary-blue);
+            width: 20px;
+            text-align: center;
+        }
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+        .footer-links a {
+            color: #6c757d;
             text-decoration: none;
             transition: color 0.3s;
+            font-size: 0.9rem;
         }
-
-        .footer a:hover {
-            color: var(--dark-blue);
-            text-decoration: underline;
+        .footer-links a:hover {
+            color: var(--primary-blue);
         }
-
+        .newsletter-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .newsletter-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .newsletter-button {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+        .newsletter-button:hover {
+            background-color: var(--dark-blue);
+        }
         .dropdown-menu {
             border: none;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -197,8 +317,16 @@
                 font-size: 0.8rem;
             }
             
-            .nav-link.small {
-                font-size: 0.75rem;
+            /* Footer mobile adjustments */
+            .footer-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .footer-column {
+                padding: 0;
+            }
+            .social-links {
+                justify-content: center;
             }
         }
 
@@ -303,9 +431,59 @@
 
     @await Html.PartialAsync("_ChatBox")
 
-    <footer class="footer">
-        <div class="container text-center">
-            &copy; @DateTime.Now.Year - School Management System - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <!-- Column 1: Logo and Slogan -->
+                <div class="footer-column">
+                    <a href="/" class="footer-logo">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Editern</span>
+                    </a>
+                    <p class="footer-slogan">
+                        Empowering education through innovative technology solutions for schools and educators.
+                    </p>
+                </div>
+
+                <!-- Column 2: Follow Us -->
+                <div class="footer-column">
+                    <h3 class="footer-title">Follow Us</h3>
+                    <div class="social-links">
+                        <a href="https://facebook.com" class="social-link facebook" target="_blank">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://twitter.com" class="social-link twitter" target="_blank">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://instagram.com" class="social-link instagram" target="_blank">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 3: Contact Us -->
+                <div class="footer-column">
+                    <h3 class="footer-title">Contact Us</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>contact@editern.edu</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone-alt"></i>
+                            <span>+1 (555) 123-4567</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>123 Education St, Learning City</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; @DateTime.Now.Year Editern School Management System. All rights reserved.
+            </div>
         </div>
     </footer>
 
