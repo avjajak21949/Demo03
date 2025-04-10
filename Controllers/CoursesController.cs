@@ -27,25 +27,35 @@ namespace Demo03.Controllers
         }
 
         // GET: Courses
+        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
             
             IQueryable<Course> coursesQuery = _context.Courses
-                .Include(c => c.Classes)
-                .Include(c => c.Teachers);
-            
-            if (isEmployer)
+                .Include(c => c.Category)
+                .Include(c => c.Classes);
+
+            if (isManager)
             {
-                coursesQuery = coursesQuery.Where(c => c.CreatedByEmployerId == user.Id);
+                // Managers can see all courses
+                return View(await coursesQuery.ToListAsync());
             }
-            
-            var courses = await coursesQuery.ToListAsync();
-            return View(courses);
+            else
+            {
+                // Teachers can only see courses they teach
+                var teacher = await _context.Teachers.FindAsync(user.Id);
+                if (teacher != null)
+                {
+                    coursesQuery = coursesQuery.Where(c => c.Classes.Any(cl => cl.TeacherId == teacher.Id));
+                }
+                return View(await coursesQuery.ToListAsync());
+            }
         }
 
         // GET: Courses/Details/5
+        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -54,11 +64,11 @@ namespace Demo03.Controllers
             }
 
             var user = await _userManager.GetUserAsync(User);
-            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
-            
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+
             var course = await _context.Courses
+                .Include(c => c.Category)
                 .Include(c => c.Classes)
-                .Include(c => c.Teachers)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (course == null)
@@ -66,41 +76,44 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            if (isEmployer && course.CreatedByEmployerId != user.Id)
+            if (!isManager)
             {
-                return Forbid();
+                var teacher = await _context.Teachers.FindAsync(user.Id);
+                if (teacher != null && !course.Classes.Any(cl => cl.TeacherId == teacher.Id))
+                {
+                    return Forbid();
+                }
             }
 
             return View(course);
         }
 
         // GET: Courses/Create
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public IActionResult Create()
         {
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name");
             return View();
         }
 
         // POST: Courses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> Create([Bind("Name,Description,Duration,Price")] Course course)
+        [Authorize(Policy = "ManagerPolicy")]
+        public async Task<IActionResult> Create([Bind("Name,Description,CategoryID")] Course course)
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.GetUserAsync(User);
-                course.CreatedByEmployerId = user.Id;
-                
                 _context.Add(course);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name", course.CategoryID);
             return View(course);
         }
 
         // GET: Courses/Edit/5
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -108,49 +121,31 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
             var course = await _context.Courses.FindAsync(id);
-            
             if (course == null)
             {
                 return NotFound();
             }
-
-            if (course.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
-            }
-
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name", course.CategoryID);
             return View(course);
         }
 
         // POST: Courses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Duration,Price")] Course course)
+        [Authorize(Policy = "ManagerPolicy")]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CategoryID")] Course course)
         {
             if (id != course.Id)
             {
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
-            var existingCourse = await _context.Courses.FindAsync(id);
-            if (existingCourse.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
-            }
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    existingCourse.Name = course.Name;
-                    existingCourse.Description = course.Description;
-                    existingCourse.Duration = course.Duration;
-                    existingCourse.Price = course.Price;
-
+                    _context.Update(course);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -166,11 +161,12 @@ namespace Demo03.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["CategoryID"] = new SelectList(_context.Categories, "Id", "Name", course.CategoryID);
             return View(course);
         }
 
         // GET: Courses/Delete/5
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -178,18 +174,12 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
             var course = await _context.Courses
+                .Include(c => c.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            
             if (course == null)
             {
                 return NotFound();
-            }
-
-            if (course.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
             }
 
             return View(course);
@@ -198,17 +188,10 @@ namespace Demo03.Controllers
         // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
             var course = await _context.Courses.FindAsync(id);
-            
-            if (course.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
-            }
-
             _context.Courses.Remove(course);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

@@ -14,40 +14,47 @@ namespace Demo03.Controllers
     [Authorize]
     public class StudentController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public StudentController(UserManager<IdentityUser> userManager, ApplicationDbContext context)
+        public StudentController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
-            _userManager = userManager;
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Student
+        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
             
             IQueryable<Student> studentsQuery = _context.Students
                 .Include(s => s.StudentClasses)
                     .ThenInclude(sc => sc.Class)
                         .ThenInclude(c => c.Course);
-            
-            if (isEmployer)
+
+            if (isManager)
             {
-                studentsQuery = studentsQuery.Where(s => s.CreatedByEmployerId == user.Id);
+                // Managers can see all students
+                return View(await studentsQuery.ToListAsync());
             }
-            else if (await _userManager.IsInRoleAsync(user, "Student"))
+            else
             {
-                studentsQuery = studentsQuery.Where(s => s.Id == user.Id);
+                // Teachers can only see students in their classes
+                var teacher = await _context.Teachers.FindAsync(user.Id);
+                if (teacher != null)
+                {
+                    studentsQuery = studentsQuery.Where(s => s.StudentClasses
+                        .Any(sc => sc.Class.TeacherId == teacher.Id));
+                }
+                return View(await studentsQuery.ToListAsync());
             }
-            
-            var students = await studentsQuery.ToListAsync();
-            return View(students);
         }
 
         // GET: Student/Details/5
+        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Details(string id)
         {
             if (id == null)
@@ -56,8 +63,8 @@ namespace Demo03.Controllers
             }
 
             var user = await _userManager.GetUserAsync(User);
-            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
-            
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+
             var student = await _context.Students
                 .Include(s => s.StudentClasses)
                     .ThenInclude(sc => sc.Class)
@@ -69,16 +76,21 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            if (isEmployer && student.CreatedByEmployerId != user.Id)
+            if (!isManager)
             {
-                return Forbid();
+                var teacher = await _context.Teachers.FindAsync(user.Id);
+                if (teacher != null && !student.StudentClasses
+                    .Any(sc => sc.Class.TeacherId == teacher.Id))
+                {
+                    return Forbid();
+                }
             }
 
             return View(student);
         }
 
         // GET: Student/Create
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public IActionResult Create()
         {
             return View();
@@ -87,13 +99,11 @@ namespace Demo03.Controllers
         // POST: Student/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> Create([Bind("FullName,StudentNumber,Department,Password,Email")] Student student)
+        [Authorize(Policy = "ManagerPolicy")]
+        public async Task<IActionResult> Create([Bind("FullName,Email,Password")] Student student)
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.GetUserAsync(User);
-                student.CreatedByEmployerId = user.Id;
                 student.UserName = student.Email;
                 student.EmailConfirmed = true;
                 
@@ -112,7 +122,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Edit/5
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -120,47 +130,31 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
             var student = await _context.Students.FindAsync(id);
-            
             if (student == null)
             {
                 return NotFound();
             }
-
-            if (student.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
-            }
-
             return View(student);
         }
 
         // POST: Student/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,StudentNumber,Department,Email")] Student student)
+        [Authorize(Policy = "ManagerPolicy")]
+        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Email")] Student student)
         {
             if (id != student.Id)
             {
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
-            var existingStudent = await _context.Students.FindAsync(id);
-            if (existingStudent.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
-            }
-
             if (ModelState.IsValid)
             {
                 try
                 {
+                    var existingStudent = await _context.Students.FindAsync(id);
                     existingStudent.FullName = student.FullName;
-                    existingStudent.StudentNumber = student.StudentNumber;
-                    existingStudent.Department = student.Department;
                     existingStudent.Email = student.Email;
                     existingStudent.UserName = student.Email;
 
@@ -183,7 +177,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Delete/5
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -191,18 +185,12 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
             var student = await _context.Students
+                .Include(s => s.StudentClasses)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            
             if (student == null)
             {
                 return NotFound();
-            }
-
-            if (student.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
             }
 
             return View(student);
@@ -211,17 +199,10 @@ namespace Demo03.Controllers
         // POST: Student/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            var user = await _userManager.GetUserAsync(User);
             var student = await _context.Students.FindAsync(id);
-            
-            if (student.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
-            }
-
             _context.Students.Remove(student);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

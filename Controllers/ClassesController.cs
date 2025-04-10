@@ -25,25 +25,37 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes
+        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
             
             IQueryable<Class> classesQuery = _context.Classes
                 .Include(c => c.Course)
-                .Include(c => c.Teacher);
-            
-            if (isEmployer)
+                .Include(c => c.Teacher)
+                .Include(c => c.StudentClasses)
+                    .ThenInclude(sc => sc.Student);
+
+            if (isManager)
             {
-                classesQuery = classesQuery.Where(c => c.CreatedByEmployerId == user.Id);
+                // Managers can see all classes
+                return View(await classesQuery.ToListAsync());
             }
-            
-            var classes = await classesQuery.ToListAsync();
-            return View(classes);
+            else
+            {
+                // Teachers can only see their classes
+                var teacher = await _context.Teachers.FindAsync(user.Id);
+                if (teacher != null)
+                {
+                    classesQuery = classesQuery.Where(c => c.TeacherId == teacher.Id);
+                }
+                return View(await classesQuery.ToListAsync());
+            }
         }
 
         // GET: Classes/Details/5
+        [Authorize(Policy = "TeacherOrManagerPolicy")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -51,24 +63,35 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+
             var @class = await _context.Classes
                 .Include(c => c.Course)
                 .Include(c => c.Teacher)
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
-                .Include(c => c.Schedules)
-                .FirstOrDefaultAsync(m => m.ClassID == id);
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (@class == null)
             {
                 return NotFound();
             }
 
+            if (!isManager)
+            {
+                var teacher = await _context.Teachers.FindAsync(user.Id);
+                if (teacher != null && @class.TeacherId != teacher.Id)
+                {
+                    return Forbid();
+                }
+            }
+
             return View(@class);
         }
 
         // GET: Classes/Create
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public IActionResult Create()
         {
             ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name");
@@ -79,14 +102,11 @@ namespace Demo03.Controllers
         // POST: Classes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> Create([Bind("Name,ScheduleInfo,MaxCapacity,CourseID,TeacherId")] Class @class)
+        [Authorize(Policy = "ManagerPolicy")]
+        public async Task<IActionResult> Create([Bind("Name,CourseID,TeacherId,StartDate,EndDate")] Class @class)
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.GetUserAsync(User);
-                @class.CreatedByEmployerId = user.Id;
-                
                 _context.Add(@class);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -97,7 +117,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Edit/5
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -105,22 +125,11 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
-            var @class = await _context.Classes
-                .Include(c => c.Course)
-                .Include(c => c.Teacher)
-                .FirstOrDefaultAsync(m => m.ClassID == id);
-
+            var @class = await _context.Classes.FindAsync(id);
             if (@class == null)
             {
                 return NotFound();
             }
-
-            if (@class.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
-            }
-
             ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name", @class.CourseID);
             ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "FullName", @class.TeacherId);
             return View(@class);
@@ -129,19 +138,12 @@ namespace Demo03.Controllers
         // POST: Classes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> Edit(int id, [Bind("ClassID,Name,ScheduleInfo,MaxCapacity,CourseID,TeacherId")] Class @class)
+        [Authorize(Policy = "ManagerPolicy")]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CourseID,TeacherId,StartDate,EndDate")] Class @class)
         {
-            if (id != @class.ClassID)
+            if (id != @class.Id)
             {
                 return NotFound();
-            }
-
-            var user = await _userManager.GetUserAsync(User);
-            var existingClass = await _context.Classes.FindAsync(id);
-            if (existingClass.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
             }
 
             if (ModelState.IsValid)
@@ -153,7 +155,7 @@ namespace Demo03.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ClassExists(@class.ClassID))
+                    if (!ClassExists(@class.Id))
                     {
                         return NotFound();
                     }
@@ -170,7 +172,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Delete/5
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -178,20 +180,13 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
             var @class = await _context.Classes
                 .Include(c => c.Course)
                 .Include(c => c.Teacher)
-                .FirstOrDefaultAsync(m => m.ClassID == id);
-
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (@class == null)
             {
                 return NotFound();
-            }
-
-            if (@class.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
             }
 
             return View(@class);
@@ -200,17 +195,10 @@ namespace Demo03.Controllers
         // POST: Classes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
+        [Authorize(Policy = "ManagerPolicy")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
             var @class = await _context.Classes.FindAsync(id);
-            
-            if (@class.CreatedByEmployerId != user.Id)
-            {
-                return Forbid();
-            }
-
             _context.Classes.Remove(@class);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -218,7 +206,7 @@ namespace Demo03.Controllers
 
         private bool ClassExists(int id)
         {
-            return _context.Classes.Any(e => e.ClassID == id);
+            return _context.Classes.Any(e => e.Id == id);
         }
     }
 }

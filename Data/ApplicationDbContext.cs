@@ -114,18 +114,6 @@ namespace Demo03.Data
 
         private void SeedUserRole(ModelBuilder builder)
         {
-            var hasher = new PasswordHasher<IdentityUser>();
-
-            // Create user accounts
-            var adminAccount = new IdentityUser
-            {
-                Id = "user0",
-                UserName = "admin@gmail.com",
-                Email = "admin@gmail.com",
-                NormalizedUserName = "ADMIN@GMAIL.COM",
-                NormalizedEmail = "ADMIN@GMAIL.COM",
-                EmailConfirmed = true
-            };
 
             var studentAccount = new IdentityUser
             {
@@ -158,14 +146,12 @@ namespace Demo03.Data
             };
 
             // Hash passwords
-            adminAccount.PasswordHash = hasher.HashPassword(adminAccount, "123456");
             studentAccount.PasswordHash = hasher.HashPassword(studentAccount, "123456");
             employerAccount.PasswordHash = hasher.HashPassword(employerAccount, "123456");
             teacherAccount.PasswordHash = hasher.HashPassword(teacherAccount, "123456");
 
             // Add users to database
             builder.Entity<IdentityUser>().HasData(
-                adminAccount,
                 studentAccount,
                 employerAccount,
                 teacherAccount
@@ -173,12 +159,7 @@ namespace Demo03.Data
 
             // Define roles
             builder.Entity<IdentityRole>().HasData(
-                new IdentityRole
-                {
-                    Id = "role0",
-                    Name = "Administrator",
-                    NormalizedName = "ADMINISTRATOR"
-                },
+
                 new IdentityRole
                 {
                     Id = "role1",
@@ -201,11 +182,6 @@ namespace Demo03.Data
 
             // Assign roles to users
             builder.Entity<IdentityUserRole<string>>().HasData(
-                new IdentityUserRole<string>
-                {
-                    UserId = "user0",
-                    RoleId = "role0"  // Admin
-                },
                 new IdentityUserRole<string>
                 {
                     UserId = "user1",
