@@ -140,26 +140,6 @@ namespace Demo03
             {
                 await roleManager.CreateAsync(new IdentityRole("Student"));
             }
-
-            // Create Admin role if it doesn't exist
-            if (!await roleManager.RoleExistsAsync("Admin"))
-            {
-                await roleManager.CreateAsync(new IdentityRole("Admin"));
-            }
-
-            // Create default admin user
-            var adminUser = await userManager.FindByEmailAsync("admin@example.com");
-            if (adminUser == null)
-            {
-                var admin = new IdentityUser
-                {
-                    UserName = "admin@example.com",
-                    Email = "admin@example.com",
-                    EmailConfirmed = true
-                };
-                await userManager.CreateAsync(admin, "Admin123!");
-                await userManager.AddToRoleAsync(admin, "Admin");
-            }
         }
     }
 }

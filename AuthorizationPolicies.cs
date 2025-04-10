@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace YourNamespace.Authorization
+namespace Demo03.Authorization
 {
     public class AuthorizationPolicies
     {
@@ -29,6 +29,13 @@ namespace YourNamespace.Authorization
             // CRUD operations for Student
             options.AddPolicy("StudentCRUDPolicy", policy =>
                 policy.RequireRole("Student"));
+
+            // Combined policies for common operations
+            options.AddPolicy("TeacherOrManagerPolicy", policy =>
+                policy.RequireRole("Teacher", "Manager"));
+
+            options.AddPolicy("StudentOrTeacherPolicy", policy =>
+                policy.RequireRole("Student", "Teacher"));
         }
     }
 } 
