@@ -1,0 +1,35 @@
+@model IEnumerable<Demo03.Models.Document>
+
+@{
+    ViewData["Title"] = "Document Blog";
+}
+
+<div class="container mt-4">
+    <h1>Document Blog</h1>
+    
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Title</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            Uploaded by @item.UploadedBy.UserName on @item.UploadDate.ToString("MMM dd, yyyy")
+                        </h6>
+                        <p class="card-text">@item.Description</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a asp-action="Details" asp-route-id="@item.DocumentID" class="btn btn-primary">View Details</a>
+                                <a asp-action="Download" asp-route-id="@item.DocumentID" class="btn btn-success">Download</a>
+                            </div>
+                            <small class="text-muted">
+                                @item.Comments.Count comments
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div> 
