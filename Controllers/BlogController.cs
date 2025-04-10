@@ -126,10 +126,21 @@ namespace Demo03.Controllers
                 }
             }
 
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", document.FileName);
-            if (!System.IO.File.Exists(filePath))
+            // Search for file with the document's filename in the uploads directory
+            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+            var files = Directory.GetFiles(uploadsFolder);
+            
+            // Find any file that contains the document filename (handling the GUID prefix)
+            var filePath = files.FirstOrDefault(f => Path.GetFileName(f).Contains(document.FileName));
+            
+            if (filePath == null || !System.IO.File.Exists(filePath))
             {
-                return NotFound();
+                // Fall back to the original path format
+                filePath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", document.FileName);
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return NotFound("File not found on server. Please contact administrator.");
+                }
             }
 
             var memory = new MemoryStream();
@@ -139,7 +150,7 @@ namespace Demo03.Controllers
             }
             memory.Position = 0;
 
-            return File(memory, GetContentType(document.FileName), document.FileName);
+            return File(memory, GetContentType(Path.GetFileName(filePath)), Path.GetFileName(filePath));
         }
 
         private string GetContentType(string fileName)
