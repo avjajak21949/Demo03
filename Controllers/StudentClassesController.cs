@@ -25,6 +25,7 @@ namespace Demo03.Controllers
         }
 
         // GET: StudentClasses
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -53,6 +54,7 @@ namespace Demo03.Controllers
         }
 
         // GET: StudentClasses/Details/5
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -90,8 +92,8 @@ namespace Demo03.Controllers
         [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name");
-            ViewData["StudentId"] = new SelectList(_context.Students, "Id", "FullName");
+            ViewData["ClassID"] = new SelectList(_context.Classes.Include(c => c.Course), "ClassID", "Name");
+            ViewData["StudentID"] = new SelectList(_context.Students, "Id", "FullName");
             return View();
         }
 
@@ -99,7 +101,7 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Create([Bind("StudentClassID,StudentID,ClassID")] StudentClass studentClass)
+        public async Task<IActionResult> Create([Bind("StudentClassID,ClassID,StudentId")] StudentClass studentClass)
         {
             if (ModelState.IsValid)
             {
@@ -107,8 +109,8 @@ namespace Demo03.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", studentClass.ClassID);
-            ViewData["StudentId"] = new SelectList(_context.Students, "Id", "FullName", studentClass.StudentId);
+            ViewData["ClassID"] = new SelectList(_context.Classes.Include(c => c.Course), "ClassID", "Name", studentClass.ClassID);
+            ViewData["StudentID"] = new SelectList(_context.Students, "Id", "FullName", studentClass.StudentId);
             return View(studentClass);
         }
 

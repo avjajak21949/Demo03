@@ -25,6 +25,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -54,6 +55,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Details/5
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

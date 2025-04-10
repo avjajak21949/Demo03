@@ -24,7 +24,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher
-        [Authorize(Roles = "Manager,Teacher")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -90,7 +90,7 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Create([Bind("FullName,Email,Password")] Teacher teacher)
+        public async Task<IActionResult> Create([Bind("FullName,Email,Password,Department,Specialization")] Teacher teacher)
         {
             if (ModelState.IsValid)
             {

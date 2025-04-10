@@ -24,6 +24,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -48,6 +49,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Details/5
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Details(string id)
         {
             if (id == null)
@@ -79,8 +81,11 @@ namespace Demo03.Controllers
 
         // GET: Student/Create
         [Authorize(Roles = "Manager")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+            Console.WriteLine($"Current user: {user?.UserName}, Roles: {string.Join(", ", roles)}");
             return View();
         }
 
@@ -88,8 +93,12 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Create([Bind("FullName,Email,Password")] Student student)
+        public async Task<IActionResult> Create([Bind("FullName,Email,Password,StudentNumber,Department")] Student student)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+            Console.WriteLine($"Current user: {user?.UserName}, Roles: {string.Join(", ", roles)}");
+
             if (ModelState.IsValid)
             {
                 student.UserName = student.Email;
@@ -103,7 +112,15 @@ namespace Demo03.Controllers
                 }
                 foreach (var error in result.Errors)
                 {
+                    Console.WriteLine($"Error creating student: {error.Description}");
                     ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            else
+            {
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"Model validation error: {error.ErrorMessage}");
                 }
             }
             return View(student);

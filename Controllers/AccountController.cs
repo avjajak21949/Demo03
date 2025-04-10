@@ -61,9 +61,16 @@ namespace Demo03.Controllers
                     return Ok(new { success = false, message = "User has no roles assigned" });
                 }
 
-                if (currentUserRoles.Contains("Administrator") || currentUserRoles.Contains("Teacher"))
+                if (currentUserRoles.Contains("Manager"))
                 {
-                    // For admin/teacher: return only students
+                    // For manager: return all users
+                    var users = await _userManager.Users.ToListAsync();
+                    _logger.LogInformation($"Found {users.Count} users");
+                    return Ok(new { success = true, users = users.Select(u => new { id = u.Id, name = u.UserName }) });
+                }
+                else if (currentUserRoles.Contains("Teacher"))
+                {
+                    // For teacher: return only students
                     var students = await _userManager.GetUsersInRoleAsync("Student");
                     _logger.LogInformation($"Found {students.Count} students");
                     return Ok(new { success = true, users = students.Select(u => new { id = u.Id, name = u.UserName }) });

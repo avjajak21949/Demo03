@@ -75,42 +75,17 @@ namespace Demo03.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
+                var user = new IdentityUser { UserName = Input.Email, Email = Input.Email, EmailConfirmed = true };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    // Add user to Employer role
-                    await _userManager.AddToRoleAsync(user, "Employer");
+                    // Add user to Manager role
+                    await _userManager.AddToRoleAsync(user, "Manager");
 
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { area = "Identity", userId = user.Id, code = code, returnUrl = returnUrl },
-                        protocol: Request.Scheme);
-
-                    var emailSubject = "Welcome to E-Learning - Confirm Your Email";
-                    var emailBody = $@"
-                        <h2>Welcome to E-Learning!</h2>
-                        <p>Thank you for registering as an Employer. Please confirm your email by clicking the link below:</p>
-                        <p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Click here to confirm your email</a></p>
-                        <p>After confirming your email, you can start using all features of our platform.</p>
-                        <p>Best regards,<br>E-Learning Team</p>";
-
-                    await _emailService.SendEmailAsync(Input.Email, emailSubject, emailBody);
-
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                    {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
-                    }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
-                    }
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return LocalRedirect(returnUrl);
                 }
                 foreach (var error in result.Errors)
                 {

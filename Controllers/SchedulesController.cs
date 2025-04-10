@@ -23,6 +23,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Schedules
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             var schedules = await _context.Schedules
@@ -33,6 +34,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Schedules/Details/5
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -54,17 +56,17 @@ namespace Demo03.Controllers
         }
 
         // GET: Schedules/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name");
+            ViewData["ClassID"] = new SelectList(_context.Classes.Include(c => c.Course), "ClassID", "Name");
             return View();
         }
 
         // POST: Schedules/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Create([Bind("ScheduleID,ClassID,DayOfWeek,StartDate,EndDate,DaysOfWeek,StartTime,EndTime,Location,AvailableSeats")] Schedule schedule)
         {
             if (ModelState.IsValid)
@@ -73,12 +75,12 @@ namespace Demo03.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", schedule.ClassID);
+            ViewData["ClassID"] = new SelectList(_context.Classes.Include(c => c.Course), "ClassID", "Name", schedule.ClassID);
             return View(schedule);
         }
 
         // GET: Schedules/Edit/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -91,14 +93,14 @@ namespace Demo03.Controllers
             {
                 return NotFound();
             }
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", schedule.ClassID);
+            ViewData["ClassID"] = new SelectList(_context.Classes.Include(c => c.Course), "ClassID", "Name", schedule.ClassID);
             return View(schedule);
         }
 
         // POST: Schedules/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(int id, [Bind("ScheduleID,ClassID,DayOfWeek,StartDate,EndDate,DaysOfWeek,StartTime,EndTime,Location,AvailableSeats")] Schedule schedule)
         {
             if (id != schedule.ScheduleID)
@@ -126,12 +128,12 @@ namespace Demo03.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", schedule.ClassID);
+            ViewData["ClassID"] = new SelectList(_context.Classes.Include(c => c.Course), "ClassID", "Name", schedule.ClassID);
             return View(schedule);
         }
 
         // GET: Schedules/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -153,7 +155,7 @@ namespace Demo03.Controllers
         // POST: Schedules/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var schedule = await _context.Schedules.FindAsync(id);
@@ -163,7 +165,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Schedules/Calendar
-        [Authorize(Roles = "Administrator,Employer,Teacher")]
+        [Authorize(Roles = "Manager,Teacher")]
         public async Task<IActionResult> Calendar()
         {
             var schedules = await _context.Schedules
