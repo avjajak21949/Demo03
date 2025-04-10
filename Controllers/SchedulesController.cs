@@ -55,9 +55,9 @@ namespace Demo03.Controllers
 
         // GET: Schedules/Create
         [Authorize(Roles = "Manager")]
-        public IActionResult Create()
+        public IActionResult Create(int? classId)
         {
-            ViewData["ClassID"] = new SelectList(_context.Classes.Include(c => c.Course), "ClassID", "Name");
+            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", classId);
             return View();
         }
 
@@ -69,11 +69,32 @@ namespace Demo03.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(schedule);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // Check if the class exists if ClassID is provided
+                    if (schedule.ClassID > 0)
+                    {
+                        var classExists = await _context.Classes.AnyAsync(c => c.ClassID == schedule.ClassID);
+                        if (!classExists)
+                        {
+                            ModelState.AddModelError("ClassID", "The selected class does not exist.");
+                            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", schedule.ClassID);
+                            return View(schedule);
+                        }
+                    }
+
+                    _context.Add(schedule);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error creating schedule: {ex.Message}");
+                }
             }
-            ViewData["ClassID"] = new SelectList(_context.Classes.Include(c => c.Course), "ClassID", "Name", schedule.ClassID);
+
+            // If we get here, something went wrong - redisplay form
+            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", schedule.ClassID);
             return View(schedule);
         }
 
