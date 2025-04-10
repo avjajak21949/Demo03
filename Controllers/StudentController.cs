@@ -42,9 +42,11 @@ namespace Demo03.Controllers
                     return NotFound();
                 }
 
-                return View(student);
+                // Wrap the single student in a collection
+                return View(new List<Student> { student });
             }
 
+            // Return all students for other roles
             return View(await _context.Students.ToListAsync());
         }
 
@@ -71,7 +73,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public IActionResult Create()
         {
             return View();
@@ -80,7 +82,7 @@ namespace Demo03.Controllers
         // POST: Student/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Create([Bind("FullName,StudentNumber,Department,Password,Email")] Student student)
         {
             if (ModelState.IsValid)
@@ -104,7 +106,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Edit/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -123,7 +125,7 @@ namespace Demo03.Controllers
         // POST: Student/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,StudentNumber,Department,Email")] Student student)
         {
             if (id != student.Id)
@@ -161,7 +163,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -182,7 +184,7 @@ namespace Demo03.Controllers
         // POST: Student/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var student = await _context.Students.FindAsync(id);

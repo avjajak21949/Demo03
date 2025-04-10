@@ -46,7 +46,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Categories/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public IActionResult Create()
         {
             return View();
@@ -57,7 +57,7 @@ namespace Demo03.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Create([Bind("CategoryID,Name")] Category category)
         {
             if (ModelState.IsValid)
@@ -70,7 +70,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Categories/Edit/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -91,7 +91,7 @@ namespace Demo03.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Edit(int id, [Bind("CategoryID,Name")] Category category)
         {
             if (id != category.CategoryID)
@@ -123,7 +123,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Categories/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -144,7 +144,7 @@ namespace Demo03.Controllers
         // POST: Categories/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Admin,Employer")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var category = await _context.Categories.FindAsync(id);
