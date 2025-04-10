@@ -11,33 +11,23 @@ namespace Demo03.Models
         public int MeetingID { get; set; }
 
         [Required]
-        [StringLength(100)]
-        [Display(Name = "Meeting Title")]
-        public string Title { get; set; }
-
-        [Required]
         [Display(Name = "Start Time")]
         public DateTime StartTime { get; set; }
 
         [Required]
-        [StringLength(100)]
+        [StringLength(500)]
         [Display(Name = "Meeting Link")]
-        public string MeetingLink { get; set; }  // Google Meet or other platform link
+        public string MeetingLink { get; set; }
 
-        [Required]
-        public string HostUserId { get; set; }  // Teacher who created the meeting
+        public string HostUserId { get; set; }
 
         [ForeignKey("HostUserId")]
         public IdentityUser Host { get; set; }
 
         [Required]
-        public int ClassID { get; set; }  // Associated class
+        public int ClassID { get; set; }
 
         [ForeignKey("ClassID")]
         public Class Class { get; set; }
-
-        [StringLength(200)]
-        [Display(Name = "Description")]
-        public string Description { get; set; }
     }
 } 

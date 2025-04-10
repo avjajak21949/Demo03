@@ -26,28 +26,50 @@ namespace Demo03.Controllers
         // GET: Meetings
         public async Task<IActionResult> Index()
         {
-            var user = await _userManager.GetUserAsync(User);
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            IQueryable<Meeting> query = _context.Meetings
-                .Include(m => m.Class)
-                .Include(m => m.Host);
-
-            if (userRoles.Contains("Teacher"))
+            if (!User.Identity.IsAuthenticated)
             {
-                query = query.Where(m => m.HostUserId == user.Id);
-            }
-            else if (userRoles.Contains("Student"))
-            {
-                var studentClasses = await _context.StudentClasses
-                    .Where(sc => sc.StudentId == user.Id)
-                    .Select(sc => sc.ClassID)
-                    .ToListAsync();
-
-                query = query.Where(m => studentClasses.Contains(m.ClassID));
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
 
-            return View(await query.ToListAsync());
+            if (!User.IsInRole("Teacher") && !User.IsInRole("Student"))
+            {
+                TempData["Error"] = "You don't have permission to view meetings.";
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return RedirectToPage("/Account/Login", new { area = "Identity" });
+                }
+
+                IQueryable<Meeting> query = _context.Meetings
+                    .Include(m => m.Class)
+                    .Include(m => m.Host);
+
+                if (User.IsInRole("Teacher"))
+                {
+                    query = query.Where(m => m.HostUserId == user.Id);
+                }
+                else
+                {
+                    var studentClasses = await _context.StudentClasses
+                        .Where(sc => sc.StudentId == user.Id)
+                        .Select(sc => sc.ClassID)
+                        .ToListAsync();
+
+                    query = query.Where(m => studentClasses.Contains(m.ClassID));
+                }
+
+                return View(await query.ToListAsync());
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while loading meetings.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Meetings/Details/5
@@ -75,6 +97,11 @@ namespace Demo03.Controllers
         [Authorize(Roles = "Teacher")]
         public IActionResult Create()
         {
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Teacher"))
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
             ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name");
             return View();
         }
@@ -83,23 +110,37 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Teacher")]
-        public async Task<IActionResult> Create([Bind("MeetingID,ClassID,Title,Description,StartTime,EndTime,MeetingLink")] Meeting meeting)
+        public async Task<IActionResult> Create([Bind("ClassID,StartTime,MeetingLink")] Meeting meeting)
         {
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Teacher"))
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
+            meeting.HostUserId = user.Id;
+            
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var user = await _userManager.GetUserAsync(User);
-                    meeting.HostUserId = user.Id;
                     _context.Add(meeting);
                     await _context.SaveChangesAsync();
+                    TempData["Success"] = "Meeting created successfully!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     ModelState.AddModelError("", "Unable to create meeting. Please try again.");
+                    TempData["Error"] = "Error creating meeting.";
                 }
             }
+            
             ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", meeting.ClassID);
             return View(meeting);
         }
@@ -108,9 +149,20 @@ namespace Demo03.Controllers
         [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> Edit(int? id)
         {
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Teacher"))
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
             if (id == null)
             {
                 return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
 
             var meeting = await _context.Meetings.FindAsync(id);
@@ -119,7 +171,6 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
             if (meeting.HostUserId != user.Id)
             {
                 return Forbid();
@@ -133,23 +184,22 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Teacher")]
-        public async Task<IActionResult> Edit(int id, [Bind("MeetingID,ClassID,Title,Description,StartTime,EndTime,MeetingLink")] Meeting meeting)
+        public async Task<IActionResult> Edit(int id, [Bind("MeetingID,ClassID,StartTime,MeetingLink")] Meeting meeting)
         {
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Teacher"))
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
             if (id != meeting.MeetingID)
             {
                 return NotFound();
             }
 
-            var existingMeeting = await _context.Meetings.AsNoTracking().FirstOrDefaultAsync(m => m.MeetingID == id);
-            if (existingMeeting == null)
-            {
-                return NotFound();
-            }
-
             var user = await _userManager.GetUserAsync(User);
-            if (existingMeeting.HostUserId != user.Id)
+            if (user == null)
             {
-                return Forbid();
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
 
             meeting.HostUserId = user.Id;
@@ -160,6 +210,8 @@ namespace Demo03.Controllers
                 {
                     _context.Update(meeting);
                     await _context.SaveChangesAsync();
+                    TempData["Success"] = "Meeting updated successfully!";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -172,7 +224,6 @@ namespace Demo03.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
             ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "Name", meeting.ClassID);
             return View(meeting);
