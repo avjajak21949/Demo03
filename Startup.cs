@@ -15,6 +15,10 @@ using Microsoft.Extensions.Hosting;
 using Demo03.Services;
 using Microsoft.AspNetCore.SignalR;
 using Demo03.Hubs;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Demo03
 {
@@ -55,6 +59,26 @@ namespace Demo03
             services.AddTransient<IEmailService, EmailService>();
             services.AddControllersWithViews();
             services.AddRazorPages();
+            services.Configure<MvcOptions>(options =>
+            {
+                options.MaxModelBindingCollectionSize = 10 * 1024 * 1024; // 10MB
+            });
+            
+            // Configure request size limit
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
+            });
+
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
+            });
+
+            services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
+            });
             
             // Add SignalR
             services.AddSignalR();
