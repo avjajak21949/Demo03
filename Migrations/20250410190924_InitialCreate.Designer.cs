@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Demo03.Data.Migrations
+namespace Demo03.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250404025943_AddDocumentModel")]
-    partial class AddDocumentModel
+    [Migration("20250410190924_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,55 @@ namespace Demo03.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Demo03.Models.Attendance", b =>
+                {
+                    b.Property<int>("AttendanceID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceID"));
+
+                    b.Property<int>("ClassID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPresent")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("StudentID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("AttendanceID");
+
+                    b.HasIndex("ClassID");
+
+                    b.HasIndex("StudentID");
+
+                    b.ToTable("Attendances");
+                });
+
             modelBuilder.Entity("Demo03.Models.Category", b =>
+                {
+                    b.Property<int>("CategoryID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryID"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("CategoryID");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("Demo03.Models.ChatMessage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,12 +81,28 @@ namespace Demo03.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Content")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReceiverId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Category");
+                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("Demo03.Models.Class", b =>
@@ -52,60 +116,123 @@ namespace Demo03.Data.Migrations
                     b.Property<int>("CourseID")
                         .HasColumnType("int");
 
+                    b.Property<string>("CreatedByEmployerId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("MaxCapacity")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ScheduleInfo")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TeacherId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ClassID");
 
                     b.HasIndex("CourseID");
 
-                    b.ToTable("Class");
+                    b.HasIndex("CreatedByEmployerId");
+
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("Classes");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Comment", b =>
+                {
+                    b.Property<int>("CommentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CommentID"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DocumentID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("CommentID");
+
+                    b.HasIndex("DocumentID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("Demo03.Models.Course", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CourseID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CourseID"));
 
                     b.Property<int>("CategoryID")
                         .HasColumnType("int");
 
+                    b.Property<string>("CourseCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CreatedByEmployerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("CreditHours")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("bit");
+                    b.Property<string>("Duration")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Place")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Time")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("datetime2");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
+                    b.HasKey("CourseID");
 
                     b.HasIndex("CategoryID");
 
-                    b.ToTable("Course");
+                    b.HasIndex("CreatedByEmployerId");
+
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("Demo03.Models.Document", b =>
@@ -141,6 +268,9 @@ namespace Demo03.Data.Migrations
                     b.Property<int?>("Status")
                         .HasColumnType("int");
 
+                    b.Property<string>("TeacherId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -162,9 +292,57 @@ namespace Demo03.Data.Migrations
 
                     b.HasIndex("CourseID");
 
+                    b.HasIndex("TeacherId");
+
                     b.HasIndex("UploadedByUserId");
 
                     b.ToTable("Documents");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Meeting", b =>
+                {
+                    b.Property<int>("MeetingID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MeetingID"));
+
+                    b.Property<int>("ClassID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("HostUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("MeetingLink")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TeacherId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("MeetingID");
+
+                    b.HasIndex("ClassID");
+
+                    b.HasIndex("HostUserId");
+
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("Meetings");
                 });
 
             modelBuilder.Entity("Demo03.Models.Schedule", b =>
@@ -179,6 +357,9 @@ namespace Demo03.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("ClassID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DayOfWeek")
                         .HasColumnType("int");
 
                     b.Property<string>("DaysOfWeek")
@@ -204,7 +385,7 @@ namespace Demo03.Data.Migrations
 
                     b.HasIndex("ClassID");
 
-                    b.ToTable("Schedule");
+                    b.ToTable("Schedules");
                 });
 
             modelBuilder.Entity("Demo03.Models.StudentClass", b =>
@@ -218,32 +399,17 @@ namespace Demo03.Data.Migrations
                     b.Property<int>("ClassID")
                         .HasColumnType("int");
 
-                    b.Property<int>("SEID")
-                        .HasColumnType("int");
+                    b.Property<string>("StudentId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("StudentClassID");
 
                     b.HasIndex("ClassID");
 
-                    b.HasIndex("SEID");
+                    b.HasIndex("StudentId");
 
-                    b.ToTable("StudentClass");
-                });
-
-            modelBuilder.Entity("Demo03.Models.StudentEnrollment", b =>
-                {
-                    b.Property<int>("SEID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SEID"));
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("SEID");
-
-                    b.ToTable("StudentEnrollment");
+                    b.ToTable("StudentClasses");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -275,12 +441,6 @@ namespace Demo03.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "role0",
-                            Name = "Administrator",
-                            NormalizedName = "ADMINISTRATOR"
-                        },
-                        new
-                        {
                             Id = "role1",
                             Name = "Student",
                             NormalizedName = "STUDENT"
@@ -288,8 +448,8 @@ namespace Demo03.Data.Migrations
                         new
                         {
                             Id = "role2",
-                            Name = "Employer",
-                            NormalizedName = "EMPLOYER"
+                            Name = "Manager",
+                            NormalizedName = "MANAGER"
                         },
                         new
                         {
@@ -335,6 +495,11 @@ namespace Demo03.Data.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("nvarchar(13)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -388,36 +553,24 @@ namespace Demo03.Data.Migrations
 
                     b.ToTable("AspNetUsers", (string)null);
 
+                    b.HasDiscriminator<string>("Discriminator").HasValue("IdentityUser");
+
+                    b.UseTphMappingStrategy();
+
                     b.HasData(
-                        new
-                        {
-                            Id = "user0",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "1380f763-2863-4015-a83a-20c6b7c9aea9",
-                            Email = "admin@gmail.com",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@GMAIL.COM",
-                            NormalizedUserName = "ADMIN@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEravJ1QJ7bW5vEmuAC0+eYr9lVInZXZuei5okrN8e79/rGx+wVHTbfxZbTUaAdUTg==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "d44eab03-dc94-45d7-b7ba-d97447dd0f21",
-                            TwoFactorEnabled = false,
-                            UserName = "admin@gmail.com"
-                        },
                         new
                         {
                             Id = "user1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "d5597493-56dd-4a7d-a615-557e68498261",
+                            ConcurrencyStamp = "403a59e7-c5e0-4f40-abcf-eb3feb210ddb",
                             Email = "student@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "STUDENT@GMAIL.COM",
                             NormalizedUserName = "STUDENT@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKzagZUY5UQu79ijY90v3ZJT6+B/GP/6hmiJ6zNpB2wf/G7vAHxeOG+CZD57gZfVIA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEG+jHooltjSk1NhihLbDGzx46kdUFVikfs9p7CO3Dnj8M/dnq9Trx2TUDitPJOOHug==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "66f46eef-f71a-4421-9590-0cb2dde6d6d2",
+                            SecurityStamp = "d6820129-42f5-4b08-8cf9-3587ba71c332",
                             TwoFactorEnabled = false,
                             UserName = "student@gmail.com"
                         },
@@ -425,31 +578,31 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user2",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "c13acac6-ceb8-48ad-9a85-ca67b6190674",
-                            Email = "employer@gmail.com",
+                            ConcurrencyStamp = "f7f7b35e-ad46-4802-9291-d659ab42d529",
+                            Email = "manager@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
-                            NormalizedEmail = "EMPLOYER@GMAIL.COM",
-                            NormalizedUserName = "EMPLOYER@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEDRz7FfCmjDKvW5qDlADzSRz+57vyEbmw7Zsvcg+NMQkS60bqW1En6K267A1BfCHgA==",
+                            NormalizedEmail = "MANAGER@GMAIL.COM",
+                            NormalizedUserName = "MANAGER@GMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAENBY860rXS1iarsWap1EFVBS5iGo3ZTS+M9+9hmckbrNa+eFMz0oLHGMn24BGhOS7A==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "ed4c7d1c-ba7b-4323-ac34-3884132da51f",
+                            SecurityStamp = "084f134c-1e2d-4e22-b84f-d011b5f01cf3",
                             TwoFactorEnabled = false,
-                            UserName = "employer@gmail.com"
+                            UserName = "manager@gmail.com"
                         },
                         new
                         {
                             Id = "user3",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "9e753a5b-65d8-4c20-98a9-93dd193cb882",
+                            ConcurrencyStamp = "4560025e-d4a5-481a-95c8-006e393081eb",
                             Email = "teacher@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "TEACHER@GMAIL.COM",
                             NormalizedUserName = "TEACHER@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAyfjJk2Pm0NZgcUY0BLUxKiL8MmIJuQ7xAOUSJj4xCXSJWqhfNkG/GJgQdOiIhkZQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOzCYoJNtthJ+Ox0YtRYfcsSvEPh6T/2FJ/brWTZE97sTs8uCJu541QiA2AjI38KJA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "141817b8-d7c2-4cde-8d74-fb6a8aab0101",
+                            SecurityStamp = "1efe5b98-2fbc-4d77-b49c-037c653272a2",
                             TwoFactorEnabled = false,
                             UserName = "teacher@gmail.com"
                         });
@@ -521,11 +674,6 @@ namespace Demo03.Data.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "user0",
-                            RoleId = "role0"
-                        },
-                        new
-                        {
                             UserId = "user1",
                             RoleId = "role1"
                         },
@@ -562,6 +710,109 @@ namespace Demo03.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Demo03.Models.Student", b =>
+                {
+                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
+
+                    b.Property<string>("CreatedByEmployerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("StudentNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasIndex("CreatedByEmployerId");
+
+                    b.ToTable("AspNetUsers", t =>
+                        {
+                            t.Property("CreatedByEmployerId")
+                                .HasColumnName("Student_CreatedByEmployerId");
+
+                            t.Property("Department")
+                                .HasColumnName("Student_Department");
+
+                            t.Property("FullName")
+                                .HasColumnName("Student_FullName");
+
+                            t.Property("Password")
+                                .HasColumnName("Student_Password");
+                        });
+
+                    b.HasDiscriminator().HasValue("Student");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Teacher", b =>
+                {
+                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
+
+                    b.Property<int?>("CourseID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByEmployerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Specialization")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasIndex("CourseID");
+
+                    b.HasIndex("CreatedByEmployerId");
+
+                    b.HasDiscriminator().HasValue("Teacher");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Attendance", b =>
+                {
+                    b.HasOne("Demo03.Models.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Demo03.Models.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("Demo03.Models.Class", b =>
                 {
                     b.HasOne("Demo03.Models.Course", "Course")
@@ -570,18 +821,57 @@ namespace Demo03.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Employer")
+                        .WithMany()
+                        .HasForeignKey("CreatedByEmployerId");
+
+                    b.HasOne("Demo03.Models.Teacher", "Teacher")
+                        .WithMany("Classes")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Course");
+
+                    b.Navigation("Employer");
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Comment", b =>
+                {
+                    b.HasOne("Demo03.Models.Document", "Document")
+                        .WithMany("Comments")
+                        .HasForeignKey("DocumentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Document");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Demo03.Models.Course", b =>
                 {
                     b.HasOne("Demo03.Models.Category", "Category")
-                        .WithMany("Course")
+                        .WithMany("Courses")
                         .HasForeignKey("CategoryID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Employer")
+                        .WithMany()
+                        .HasForeignKey("CreatedByEmployerId");
+
                     b.Navigation("Category");
+
+                    b.Navigation("Employer");
                 });
 
             modelBuilder.Entity("Demo03.Models.Document", b =>
@@ -595,6 +885,10 @@ namespace Demo03.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CourseID");
 
+                    b.HasOne("Demo03.Models.Teacher", null)
+                        .WithMany("Documents")
+                        .HasForeignKey("TeacherId");
+
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "UploadedBy")
                         .WithMany()
                         .HasForeignKey("UploadedByUserId")
@@ -606,6 +900,29 @@ namespace Demo03.Data.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("UploadedBy");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Meeting", b =>
+                {
+                    b.HasOne("Demo03.Models.Class", "Class")
+                        .WithMany("Meetings")
+                        .HasForeignKey("ClassID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Host")
+                        .WithMany()
+                        .HasForeignKey("HostUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Demo03.Models.Teacher", null)
+                        .WithMany("Meetings")
+                        .HasForeignKey("TeacherId");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Host");
                 });
 
             modelBuilder.Entity("Demo03.Models.Schedule", b =>
@@ -627,15 +944,15 @@ namespace Demo03.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Demo03.Models.StudentEnrollment", "StudentEnrollment")
+                    b.HasOne("Demo03.Models.Student", "Student")
                         .WithMany("StudentClasses")
-                        .HasForeignKey("SEID")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Class");
 
-                    b.Navigation("StudentEnrollment");
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -689,13 +1006,37 @@ namespace Demo03.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Demo03.Models.Student", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Employer")
+                        .WithMany()
+                        .HasForeignKey("CreatedByEmployerId");
+
+                    b.Navigation("Employer");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Teacher", b =>
+                {
+                    b.HasOne("Demo03.Models.Course", null)
+                        .WithMany("Teachers")
+                        .HasForeignKey("CourseID");
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Employer")
+                        .WithMany()
+                        .HasForeignKey("CreatedByEmployerId");
+
+                    b.Navigation("Employer");
+                });
+
             modelBuilder.Entity("Demo03.Models.Category", b =>
                 {
-                    b.Navigation("Course");
+                    b.Navigation("Courses");
                 });
 
             modelBuilder.Entity("Demo03.Models.Class", b =>
                 {
+                    b.Navigation("Meetings");
+
                     b.Navigation("Schedules");
 
                     b.Navigation("StudentClasses");
@@ -704,11 +1045,27 @@ namespace Demo03.Data.Migrations
             modelBuilder.Entity("Demo03.Models.Course", b =>
                 {
                     b.Navigation("Classes");
+
+                    b.Navigation("Teachers");
                 });
 
-            modelBuilder.Entity("Demo03.Models.StudentEnrollment", b =>
+            modelBuilder.Entity("Demo03.Models.Document", b =>
+                {
+                    b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Student", b =>
                 {
                     b.Navigation("StudentClasses");
+                });
+
+            modelBuilder.Entity("Demo03.Models.Teacher", b =>
+                {
+                    b.Navigation("Classes");
+
+                    b.Navigation("Documents");
+
+                    b.Navigation("Meetings");
                 });
 #pragma warning restore 612, 618
         }
