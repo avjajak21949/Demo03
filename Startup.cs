@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Demo03.Models;
 
 namespace Demo03
 {
@@ -36,48 +37,46 @@ namespace Demo03
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection"),
-                    sqlServerOptionsAction: sqlOptions =>
-                    {
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 5,
-                            maxRetryDelay: TimeSpan.FromSeconds(30),
-                            errorNumbersToAdd: null);
-                        sqlOptions.CommandTimeout(60);
-                    }));
-            services.AddDefaultIdentity<IdentityUser>(options => {
-                options.SignIn.RequireConfirmedAccount = true;
-                options.SignIn.RequireConfirmedEmail = true;
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
+                    Configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequiredLength = 6;
             })
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-            services.AddTransient<IEmailService, EmailService>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequiredLength = 6;
+            });
+
             services.AddControllersWithViews();
             services.AddRazorPages();
-            services.Configure<MvcOptions>(options =>
-            {
-                options.MaxModelBindingCollectionSize = 10 * 1024 * 1024; // 10MB
-            });
-            
-            // Configure request size limit
+
+            services.AddScoped<IEmailService, EmailService>();
+
             services.Configure<IISServerOptions>(options =>
             {
-                options.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
+                options.MaxRequestBodySize = int.MaxValue;
             });
 
             services.Configure<KestrelServerOptions>(options =>
             {
-                options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
+                options.Limits.MaxRequestBodySize = int.MaxValue;
             });
 
             services.Configure<FormOptions>(options =>
             {
-                options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
+                options.MultipartBodyLengthLimit = int.MaxValue;
             });
             
             // Add SignalR
@@ -102,7 +101,7 @@ namespace Demo03
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
+                app.UseMigrationsEndPoint();
             }
             else
             {

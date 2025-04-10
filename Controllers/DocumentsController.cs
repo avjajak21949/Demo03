@@ -214,5 +214,52 @@ namespace Demo03.Controllers
                 default: return "application/octet-stream";
             }
         }
+
+        // GET: Documents/Blog
+        public async Task<IActionResult> Blog()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var documents = await _context.Documents
+                .Include(d => d.Class)
+                .Include(d => d.UploadedBy)
+                .Include(d => d.Comments)
+                .OrderByDescending(d => d.UploadDate)
+                .ToListAsync();
+
+            return View(documents);
+        }
+
+        // POST: Documents/AddComment
+        [HttpPost]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> AddComment(int documentId, string comment)
+        {
+            if (string.IsNullOrEmpty(comment))
+            {
+                return BadRequest("Comment cannot be empty");
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            var document = await _context.Documents.FindAsync(documentId);
+
+            if (document == null)
+            {
+                return NotFound();
+            }
+
+            var newComment = new Comment
+            {
+                Content = comment,
+                DocumentID = documentId,
+                UserId = user.Id,
+                UserName = user.UserName,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Comments.Add(newComment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Blog));
+        }
     }
 } 

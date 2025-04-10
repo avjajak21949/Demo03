@@ -1,0 +1,67 @@
+@model IEnumerable<Demo03.Models.Document>
+
+@{
+    ViewData["Title"] = "Document Blog";
+}
+
+<div class="container">
+    <h2 class="mb-4">Document Blog</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <p class="mb-0">No documents available yet.</p>
+        </div>
+    }
+    else
+    {
+        foreach (var doc in Model.OrderByDescending(d => d.UploadDate))
+        {
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">@doc.Title</h5>
+                    <p class="card-text">@doc.Description</p>
+                    <p class="text-muted">
+                        <small>
+                            Posted on @doc.UploadDate.ToString("MMM dd, yyyy")
+                            @if (doc.Class != null)
+                            {
+                                <span> | Class: @doc.Class.Name</span>
+                            }
+                        </small>
+                    </p>
+                    
+                    @if (User.IsInRole("Student"))
+                    {
+                        <div class="mb-3">
+                            <form asp-action="AddComment" method="post" class="mb-2">
+                                <input type="hidden" name="documentId" value="@doc.DocumentID" />
+                                <div class="input-group">
+                                    <input type="text" name="comment" class="form-control" placeholder="Add a comment..." required />
+                                    <button type="submit" class="btn btn-outline-primary">Comment</button>
+                                </div>
+                            </form>
+                        </div>
+                    }
+
+                    <div class="comments-section">
+                        @if (doc.Comments != null && doc.Comments.Any())
+                        {
+                            foreach (var comment in doc.Comments.OrderByDescending(c => c.CreatedAt))
+                            {
+                                <div class="comment mb-2">
+                                    <small class="text-muted">@comment.UserName - @comment.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                    <p class="mb-1">@comment.Content</p>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <a asp-action="Download" asp-route-id="@doc.DocumentID" class="btn btn-primary mt-2">
+                        <i class="fas fa-download"></i> Download Document
+                    </a>
+                </div>
+            </div>
+        }
+    }
+</div> 

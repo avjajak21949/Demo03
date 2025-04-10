@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
@@ -68,5 +69,7 @@ namespace Demo03.Models
         public Course Course { get; set; }
 
         public MaterialCategory? Category { get; set; }
+
+        public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 } 
