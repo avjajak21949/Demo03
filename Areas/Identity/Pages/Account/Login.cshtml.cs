@@ -78,15 +78,6 @@ namespace Demo03.Areas.Identity.Pages.Account
                 var user = await _userManager.FindByEmailAsync(Input.Email);
                 if (user != null)
                 {
-                    // Check if user is in Manager role
-                    var isManager = await _userManager.IsInRoleAsync(user, "Manager");
-                    if (!isManager)
-                    {
-                        ModelState.AddModelError(string.Empty, "Access denied. Only managers can access this system.");
-                        _logger.LogWarning($"User {Input.Email} attempted to login but is not a manager.");
-                        return Page();
-                    }
-
                     // Check if email is confirmed
                     if (!await _userManager.IsEmailConfirmedAsync(user))
                     {
@@ -95,12 +86,11 @@ namespace Demo03.Areas.Identity.Pages.Account
                         return Page();
                     }
 
-                    // This doesn't count login failures towards account lockout
-                    // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                     var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
                     if (result.Succeeded)
                     {
-                        _logger.LogInformation($"Manager {Input.Email} logged in successfully.");
+                        var roles = await _userManager.GetRolesAsync(user);
+                        _logger.LogInformation($"User {Input.Email} logged in successfully. Roles: {string.Join(", ", roles)}");
                         return LocalRedirect(returnUrl);
                     }
                     if (result.RequiresTwoFactor)

@@ -52,22 +52,6 @@
             font-size: 1.8rem;
         }
 
-        .nav-link {
-            color: #333 !important;
-            font-weight: 500;
-            padding: 0.5rem 1rem !important;
-            margin: 0 0.2rem;
-            border-radius: 4px;
-            transition: all 0.3s;
-            font-size: 0.85rem;
-            white-space: nowrap;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            color: var(--primary-blue) !important;
-            background-color: var(--light-blue);
-        }
-
         .login-container {
             max-width: 1000px;
             width: 100%;
@@ -133,6 +117,7 @@
             font-weight: 500;
             letter-spacing: 0.5px;
             transition: all 0.3s;
+            color: white;
         }
 
         .btn-login:hover {
@@ -149,45 +134,6 @@
         .link-secondary:hover {
             color: var(--dark-blue);
             text-decoration: underline;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            color: #6c757d;
-            margin: 1.5rem 0;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .divider::before {
-            margin-right: 1rem;
-        }
-
-        .divider::after {
-            margin-left: 1rem;
-        }
-
-        .manager-badge {
-            background-color: var(--light-blue);
-            color: var(--primary-blue);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .manager-badge i {
-            font-size: 1.1rem;
         }
 
         .benefits-section {
@@ -219,6 +165,29 @@
         .benefits-list li i {
             color: var(--primary-blue);
         }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #6c757d;
+            margin: 1.5rem 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .divider::before {
+            margin-right: 1rem;
+        }
+
+        .divider::after {
+            margin-left: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -242,11 +211,7 @@
             <div class="row g-0">
                 <div class="col-lg-6">
                     <div class="form-section">
-                        <div class="manager-badge">
-                            <i class="fas fa-user-tie"></i>
-                            Manager Login
-                        </div>
-                        <h4 class="section-title"><i class="fas fa-user-circle"></i> Local Account</h4>
+                        <h4 class="section-title"><i class="fas fa-user-circle"></i> Account Login</h4>
                         <form id="account" method="post">
                             <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 
@@ -285,13 +250,13 @@
                 <div class="col-lg-6">
                     <div class="form-section" style="border-left: 1px solid var(--gray-medium);">
                         <div class="benefits-section">
-                            <h5><i class="fas fa-star"></i> Manager Benefits</h5>
+                            <h5><i class="fas fa-star"></i> System Features</h5>
                             <ul class="benefits-list">
-                                <li><i class="fas fa-check-circle"></i> Full access to school management features</li>
-                                <li><i class="fas fa-check-circle"></i> Manage teachers and classes</li>
-                                <li><i class="fas fa-check-circle"></i> View and analyze student performance</li>
-                                <li><i class="fas fa-check-circle"></i> Generate reports and statistics</li>
-                                <li><i class="fas fa-check-circle"></i> Schedule and manage meetings</li>
+                                <li><i class="fas fa-check-circle"></i> Comprehensive school management</li>
+                                <li><i class="fas fa-check-circle"></i> Class and course organization</li>
+                                <li><i class="fas fa-check-circle"></i> Student performance tracking</li>
+                                <li><i class="fas fa-check-circle"></i> Communication tools</li>
+                                <li><i class="fas fa-check-circle"></i> Resource management</li>
                             </ul>
                         </div>
 
@@ -300,7 +265,7 @@
                         <div class="text-center">
                             <p class="mb-3">Don't have an account?</p>
                             <a asp-page="./Register" class="btn btn-login w-100">
-                                <i class="fas fa-user-plus"></i> Register as Manager
+                                <i class="fas fa-user-plus"></i> Register New Account
                             </a>
                         </div>
                     </div>

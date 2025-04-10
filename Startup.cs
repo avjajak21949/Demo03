@@ -18,7 +18,6 @@ using Demo03.Hubs;
 using Demo03.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Demo03.Authorization;
 
 namespace Demo03
 {
@@ -36,47 +35,30 @@ namespace Demo03
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection"),
-                    sqlServerOptionsAction: sqlOptions =>
-                    {
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 5,
-                            maxRetryDelay: TimeSpan.FromSeconds(30),
-                            errorNumbersToAdd: null);
-                        sqlOptions.CommandTimeout(60);
-                    }));
-            services.AddDefaultIdentity<IdentityUser>(options => {
-                options.SignIn.RequireConfirmedAccount = true;
-                options.SignIn.RequireConfirmedEmail = true;
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequiredLength = 6;
-            })
+                    Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-            services.AddTransient<IEmailService, EmailService>();
             services.AddControllersWithViews();
             services.AddRazorPages();
             
-            // Add authorization policies
+            // Simplified authorization policies
             services.AddAuthorization(options =>
             {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build();
 
-                options.AddPolicy("AdminPolicy", policy =>
+                options.AddPolicy("RequireAdminRole", policy => 
                     policy.RequireRole("Admin"));
-
-                options.AddPolicy("ManagerPolicy", policy =>
+                
+                options.AddPolicy("RequireManagerRole", policy => 
                     policy.RequireRole("Manager"));
-
-                options.AddPolicy("TeacherPolicy", policy =>
+                
+                options.AddPolicy("RequireTeacherRole", policy => 
                     policy.RequireRole("Teacher"));
-
-                options.AddPolicy("StudentPolicy", policy =>
+                
+                options.AddPolicy("RequireStudentRole", policy => 
                     policy.RequireRole("Student"));
             });
             
@@ -93,9 +75,7 @@ namespace Demo03
                     .AllowCredentials());
             });
 
-            services.AddScoped<IAuthorizationHandler, ContactIsOwnerAuthorizationHandler>();
-            services.AddSingleton<IAuthorizationHandler, ContactAdministratorsAuthorizationHandler>();
-            services.AddSingleton<IAuthorizationHandler, ContactManagerAuthorizationHandler>();
+            services.AddScoped<IEmailService, EmailService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
