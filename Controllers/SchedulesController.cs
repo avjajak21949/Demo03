@@ -163,6 +163,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Schedules/Calendar
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Calendar()
         {
             var schedules = await _context.Schedules
