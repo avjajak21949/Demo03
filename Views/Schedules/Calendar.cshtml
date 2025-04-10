@@ -1,0 +1,285 @@
+@{
+    ViewData["Title"] = "Schedule Calendar";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Schedule Calendar</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary">
+            <h6 class="m-0 font-weight-bold text-white">Calendar View</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" 
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-white"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" 
+                     aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="#" id="printCalendar">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </a>
+                    <a class="dropdown-item" href="#" id="exportCalendar">
+                        <i class="fas fa-file-export mr-2"></i>Export
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary" id="prevMonth">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <button type="button" class="btn btn-primary" id="currentMonth"></button>
+                        <button type="button" class="btn btn-outline-primary" id="nextMonth">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div id="calendar" class="table-responsive">
+                        <table class="table table-bordered calendar-table">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="text-center">Sunday</th>
+                                    <th class="text-center">Monday</th>
+                                    <th class="text-center">Tuesday</th>
+                                    <th class="text-center">Wednesday</th>
+                                    <th class="text-center">Thursday</th>
+                                    <th class="text-center">Friday</th>
+                                    <th class="text-center">Saturday</th>
+                                </tr>
+                            </thead>
+                            <tbody id="calendarBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let currentDate = new Date();
+            let schedules = @Html.Raw(ViewBag.Schedules);
+            
+            function updateCalendar() {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                
+                // Update month display
+                $('#currentMonth').text(new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' }));
+                
+                // Clear previous calendar
+                $('#calendarBody').empty();
+                
+                // Get first day of month and total days
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const totalDays = lastDay.getDate();
+                
+                // Create calendar rows
+                let date = 1;
+                let calendar = '<tr>';
+                
+                // Add empty cells for days before the first day of the month
+                for (let i = 0; i < firstDay.getDay(); i++) {
+                    calendar += '<td class="calendar-day empty-day"></td>';
+                }
+                
+                // Add cells for each day of the month
+                while (date <= totalDays) {
+                    // Start new row if needed
+                    if (firstDay.getDay() + date - 1 >= 7) {
+                        calendar += '</tr><tr>';
+                    }
+                    
+                    const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                    const dayOfWeek = new Date(year, month, date).getDay();
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    const currentDayName = dayNames[dayOfWeek];
+                    
+                    // Find schedules for this day
+                    const daySchedules = schedules.filter(s => {
+                        // Check if this day matches the schedule's day of week
+                        const dayMatch = s.daysOfWeek.includes(currentDayName);
+                        // Check if date is within start/end range
+                        const dateObj = new Date(currentDateStr);
+                        const startDate = new Date(s.start);
+                        const endDate = s.end ? new Date(s.end) : startDate;
+                        
+                        return dayMatch && dateObj >= startDate && dateObj <= endDate;
+                    });
+                    
+                    let scheduleHtml = `<div class="date">${date}</div>`;
+                    if (daySchedules.length > 0) {
+                        scheduleHtml += '<div class="schedule-container">';
+                        daySchedules.forEach(schedule => {
+                            scheduleHtml += `
+                                <div class="schedule-item" data-toggle="tooltip" title="${schedule.courseName}">
+                                    <div class="schedule-time">${schedule.startTime} - ${schedule.endTime}</div>
+                                    <div class="schedule-course">${schedule.courseName}</div>
+                                    <div class="schedule-class">${schedule.className}</div>
+                                    <div class="schedule-location"><i class="fas fa-map-marker-alt"></i> ${schedule.location}</div>
+                                </div>`;
+                        });
+                        scheduleHtml += '</div>';
+                    }
+                    
+                    const isToday = new Date().toDateString() === new Date(year, month, date).toDateString();
+                    calendar += `<td class="calendar-day ${isToday ? 'today' : ''}">${scheduleHtml}</td>`;
+                    date++;
+                }
+                
+                // Add empty cells for remaining days
+                const remainingDays = 7 - (firstDay.getDay() + totalDays) % 7;
+                if (remainingDays < 7) {
+                    for (let i = 0; i < remainingDays; i++) {
+                        calendar += '<td class="calendar-day empty-day"></td>';
+                    }
+                }
+                
+                calendar += '</tr>';
+                $('#calendarBody').html(calendar);
+                $('[data-toggle="tooltip"]').tooltip();
+            }
+            
+            // Initialize calendar
+            updateCalendar();
+            
+            // Handle month navigation
+            $('#prevMonth').click(function() {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                updateCalendar();
+            });
+            
+            $('#nextMonth').click(function() {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                updateCalendar();
+            });
+
+            // Print button
+            $('#printCalendar').click(function() {
+                window.print();
+            });
+
+            // Export button
+            $('#exportCalendar').click(function() {
+                alert('Export functionality will be implemented here');
+            });
+        });
+    </script>
+    
+    <style>
+        .calendar-table {
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .calendar-day {
+            height: 180px;
+            vertical-align: top;
+            padding: 8px;
+            position: relative;
+            background-color: #fff;
+        }
+
+        .empty-day {
+            background-color: #f8f9fa;
+        }
+
+        .today {
+            background-color: #e8f4ff;
+            border: 2px solid #4e73df !important;
+        }
+
+        .date {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #495057;
+            font-size: 1.1em;
+        }
+
+        .schedule-container {
+            max-height: 140px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .schedule-item {
+            font-size: 0.85em;
+            padding: 8px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #4e73df;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .schedule-item:hover {
+            background-color: #e9ecef;
+            transform: translateX(2px);
+        }
+
+        .schedule-time {
+            color: #4e73df;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .schedule-course {
+            font-weight: 500;
+            margin-bottom: 2px;
+            color: #2d3748;
+        }
+
+        .schedule-class {
+            font-size: 0.9em;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+
+        .schedule-location {
+            color: #6c757d;
+            font-size: 0.85em;
+        }
+
+        .schedule-location i {
+            margin-right: 3px;
+            color: #e74a3b;
+        }
+
+        /* Custom scrollbar */
+        .schedule-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .schedule-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .schedule-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .schedule-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Card header styling */
+        .card-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+    </style>
+}

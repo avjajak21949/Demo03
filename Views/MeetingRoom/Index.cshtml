@@ -1,0 +1,48 @@
+@model Demo03.Models.Meeting
+
+@{
+    ViewData["Title"] = "Meeting Room";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>@Model.Title</h3>
+                    <p class="text-muted mb-0">
+                        Host: @Model.Host.Email | Class: @Model.Class.Name | 
+                        Start Time: @Model.StartTime.ToString("MMM dd, yyyy hh:mm tt")
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> This is your meeting room. You can use this space to conduct your online class.
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="meeting-description mb-4">
+                            <h5>Meeting Description:</h5>
+                            <p>@Model.Description</p>
+                        </div>
+                    }
+
+                    <div class="text-center">
+                        <div id="meetingArea" class="bg-light p-5 rounded mb-4">
+                            <h4>Meeting Room ID: @Model.MeetingLink.Split('/').Last()</h4>
+                            <p>This is where the video chat interface will be implemented.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Here we can add JavaScript for implementing video chat functionality
+        // This could integrate with WebRTC or another video chat service
+    </script>
+} 

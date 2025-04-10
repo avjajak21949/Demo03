@@ -1,0 +1,108 @@
+@model Demo03.Models.Schedule
+
+@{
+    ViewData["Title"] = "Edit Schedule";
+}
+
+<h1>Edit Schedule</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="ScheduleID" />
+            
+            <div class="form-group mb-3">
+                <label asp-for="ClassID" class="control-label">Class</label>
+                <select asp-for="ClassID" class="form-control" asp-items="ViewBag.ClassID"></select>
+                <span asp-validation-for="ClassID" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="StartDate" class="control-label">Start Date</label>
+                <input asp-for="StartDate" class="form-control" type="date" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="EndDate" class="control-label">End Date</label>
+                <input asp-for="EndDate" class="form-control" type="date" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="control-label">Days of Week</label>
+                <div class="row">
+                    @{
+                        var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+                        var selectedDays = Model.DaysOfWeek?.Split(',') ?? new string[0];
+                        foreach (var day in days)
+                        {
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input type="checkbox" name="DaysOfWeek" value="@day" class="form-check-input" 
+                                           id="@day" @(selectedDays.Contains(day) ? "checked" : "") />
+                                    <label class="form-check-label" for="@day">@day</label>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <input type="hidden" id="DaysOfWeek" name="DaysOfWeek" value="@Model.DaysOfWeek" />
+                <span asp-validation-for="DaysOfWeek" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="StartTime" class="control-label">Start Time</label>
+                <input asp-for="StartTime" class="form-control" type="time" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="EndTime" class="control-label">End Time</label>
+                <input asp-for="EndTime" class="form-control" type="time" />
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Location" class="control-label">Location</label>
+                <input asp-for="Location" class="form-control" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="AvailableSeats" class="control-label">Available Seats</label>
+                <input asp-for="AvailableSeats" class="form-control" type="number" min="1" max="200" />
+                <span asp-validation-for="AvailableSeats" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Handle days of week checkboxes
+            $('input[name="DaysOfWeek"]').change(function() {
+                var selectedDays = [];
+                $('input[name="DaysOfWeek"]:checked').each(function() {
+                    selectedDays.push($(this).val());
+                });
+                $('#DaysOfWeek').val(selectedDays.join(','));
+            });
+            
+            // Initialize the hidden input with the current value
+            var selectedDays = [];
+            $('input[name="DaysOfWeek"]:checked').each(function() {
+                selectedDays.push($(this).val());
+            });
+            $('#DaysOfWeek').val(selectedDays.join(','));
+        });
+    </script>
+} 

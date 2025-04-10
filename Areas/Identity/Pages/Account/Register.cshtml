@@ -1,0 +1,419 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1a73e8;
+            --light-blue: #e8f0fe;
+            --dark-blue: #0d47a1;
+            --white: #ffffff;
+            --gray-light: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-image: linear-gradient(135deg, var(--light-blue) 0%, var(--white) 100%);
+        }
+
+        .navbar {
+            background-color: var(--white) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.8rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--primary-blue) !important;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+        }
+
+        .nav-link {
+            color: #333 !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.2rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .nav-link.small {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem !important;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-blue) !important;
+            background-color: var(--light-blue);
+        }
+
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 2px var(--light-blue);
+        }
+
+        .register-container {
+            max-width: 1000px;
+            width: 100%;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .register-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
+        .register-header {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .register-header h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+
+        .form-section {
+            padding: 2rem;
+            background-color: var(--white);
+        }
+
+        .section-title {
+            color: var(--primary-blue);
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid #ced4da;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.25rem rgba(26, 115, 232, 0.25);
+        }
+
+        .btn-register {
+            background-color: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-register:hover {
+            background-color: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-external {
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 1px solid var(--primary-blue);
+            color: var(--primary-blue);
+            margin: 0.3rem;
+        }
+
+        .btn-external:hover {
+            background-color: var(--light-blue);
+            color: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .form-check-label {
+            cursor: pointer;
+        }
+
+        .role-selection {
+            background-color: var(--gray-light);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ced4da;
+        }
+
+        .role-selection .form-check-label {
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #6c757d;
+            margin: 1.5rem 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .divider::before {
+            margin-right: 1rem;
+        }
+
+        .divider::after {
+            margin-left: 1rem;
+        }
+
+        footer {
+            background-color: var(--white);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+
+        .footer a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: var(--dark-blue);
+            text-decoration: underline;
+        }
+
+        @@media (max-width: 768px) {
+            .register-container {
+                padding: 10px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+            .navbar-brand i {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-graduation-cap"></i> Editern
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
+                        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Dashboard" asp-action="Index">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Courses" asp-action="Index">
+                                <i class="fas fa-book"></i> Courses
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Classes" asp-action="Index">
+                                <i class="fas fa-users-class"></i> Classes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Schedules" asp-action="Index">
+                                <i class="fas fa-calendar-alt"></i> Schedules
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Meetings" asp-action="Index">
+                                <i class="fas fa-video"></i> Online Classes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small" asp-area="" asp-controller="Teacher" asp-action="Index">
+                                <i class="fas fa-chalkboard-teacher"></i> Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small" asp-area="" asp-controller="Student" asp-action="Index">
+                                <i class="fas fa-user-graduate"></i> Students
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small" asp-area="" asp-controller="Categories" asp-action="Index">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small" asp-area="" asp-controller="Documents" asp-action="Index">
+                                <i class="fas fa-file-alt"></i> Documents
+                            </a>
+                        </li>
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <h1><i class="fas fa-user-plus"></i> @ViewData["Title"]</h1>
+            </div>
+
+            <div class="row g-0">
+                <div class="col-lg-6">
+                    <div class="form-section">
+                        <h4 class="section-title"><i class="fas fa-user-circle"></i> Create Account</h4>
+                        <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                            <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+                            <div class="form-floating mb-3">
+                                <input asp-for="Input.Email" class="form-control" placeholder="Email" />
+                                <label asp-for="Input.Email">Email</label>
+                                <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input asp-for="Input.Password" class="form-control" placeholder="Password" />
+                                <label asp-for="Input.Password">Password</label>
+                                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input asp-for="Input.ConfirmPassword" class="form-control" placeholder="Confirm Password" />
+                                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
+                                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                            </div>
+
+                            <div class="role-selection mb-4">
+                                <label class="form-label fw-bold mb-2"><i class="fas fa-briefcase"></i> Select Your Role</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Input.Role" value="Employer" id="employerRadio" checked />
+                                    <label class="form-check-label" for="employerRadio">
+                                        <i class="fas fa-briefcase"></i> Employer
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-register mb-3">
+                                <i class="fas fa-user-plus"></i> Register
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="form-section" style="border-left: 1px solid var(--gray-light);">
+                        <h4 class="section-title"><i class="fas fa-users"></i> External Registration</h4>
+
+                        @if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                        {
+                            <div class="alert alert-info text-center">
+                                <p class="mb-0">
+                                    <i class="fas fa-info-circle"></i> No external authentication services configured.
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                <div class="d-flex flex-wrap justify-content-center">
+                                    @foreach (var provider in Model.ExternalLogins)
+                                    {
+                                        <button type="submit" class="btn btn-external" name="provider" value="@provider.Name" title="Register using your @provider.DisplayName account">
+                                            <i class="fab fa-@provider.DisplayName.ToLower()"></i> @provider.DisplayName
+                                        </button>
+                                    }
+                                </div>
+                            </form>
+                        }
+
+                        <div class="divider">OR</div>
+
+                        <div class="text-center">
+                            <p>Already have an account? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-primary">Sign in</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container text-center">
+            &copy; @DateTime.Now.Year - School Management System - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Tự động đóng navbar khi click trên mobile
+        $(document).ready(function() {
+            $('.navbar-nav>li>a').on('click', function(){
+                if($(window).width() < 992) {
+                    $('.navbar-collapse').collapse('hide');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
