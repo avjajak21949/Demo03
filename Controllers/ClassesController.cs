@@ -28,29 +28,34 @@ namespace Demo03.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
-            
-            IQueryable<Class> classesQuery = _context.Classes
-                .Include(c => c.Course)
-                .Include(c => c.Teacher)
-                .Include(c => c.StudentClasses)
-                    .ThenInclude(sc => sc.Student);
 
-            if (isManager)
+            // Check if the user is a student
+            if (User.IsInRole("Student"))
             {
-                // Managers can see all classes
-                return View(await classesQuery.ToListAsync());
+                // Get the classes the student is enrolled in
+                var studentClasses = await _context.StudentClasses
+                    .Include(sc => sc.Class) // Include the Class entity first
+                        .ThenInclude(c => c.Course) // Include the Course entity
+                    .Include(sc => sc.Class.StudentClasses) // Include StudentClasses for student count
+                    .Where(sc => sc.StudentId == user.Id)
+                    .Select(sc => sc.Class) // Select the Class entity
+                    .ToListAsync();
+
+                return View(studentClasses);
             }
-            else
+
+            // For other roles, show all classes
+            var classes = await _context.Classes
+                .Include(c => c.Course)
+                .Include(c => c.StudentClasses) // Include StudentClasses for student count
+                .ToListAsync();
+
+            if (User.IsInRole("Teacher"))
             {
-                // Teachers can only see their classes
-                var teacher = await _context.Teachers.FindAsync(user.Id);
-                if (teacher != null)
-                {
-                    classesQuery = classesQuery.Where(c => c.TeacherId == teacher.Id);
-                }
-                return View(await classesQuery.ToListAsync());
+                classes = classes.Where(c => c.TeacherId == user.Id).ToList();
             }
+
+            return View(classes);
         }
 
         // GET: Classes/Details/5
