@@ -27,14 +27,14 @@ namespace Demo03.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
             
             IQueryable<Teacher> teachersQuery = _context.Teachers
                 .Include(t => t.Classes)
                 .Include(t => t.Meetings)
                 .Include(t => t.Documents);
             
-            if (isEmployer)
+            if (isManager)
             {
                 teachersQuery = teachersQuery.Where(t => t.CreatedByEmployerId == user.Id);
             }
@@ -56,7 +56,7 @@ namespace Demo03.Controllers
             }
 
             var user = await _userManager.GetUserAsync(User);
-            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            var isManager = await _userManager.IsInRoleAsync(user, "Manager");
             
             var teacher = await _context.Teachers
                 .Include(t => t.Classes)
@@ -69,7 +69,7 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            if (isEmployer && teacher.CreatedByEmployerId != user.Id)
+            if (isManager && teacher.CreatedByEmployerId != user.Id)
             {
                 return Forbid();
             }
@@ -78,7 +78,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Create
-        [Authorize(Roles = "Employer")]
+        [Authorize(Roles = "Manager")]
         public IActionResult Create()
         {
             return View();
@@ -87,7 +87,7 @@ namespace Demo03.Controllers
         // POST: Teacher/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Create([Bind("FullName,Department,Specialization,Password,Email")] Teacher teacher)
         {
             if (ModelState.IsValid)
@@ -112,7 +112,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Edit/5
-        [Authorize(Roles = "Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -139,7 +139,7 @@ namespace Demo03.Controllers
         // POST: Teacher/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Department,Specialization,Email")] Teacher teacher)
         {
             if (id != teacher.Id)
@@ -183,7 +183,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Delete/5
-        [Authorize(Roles = "Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -211,7 +211,7 @@ namespace Demo03.Controllers
         // POST: Teacher/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var user = await _userManager.GetUserAsync(User);

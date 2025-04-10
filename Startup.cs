@@ -122,15 +122,29 @@ namespace Demo03
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
-            string[] roleNames = { "Admin", "Manager", "Teacher", "Student" };
-            
-            foreach (var roleName in roleNames)
+
+            // Create Manager role if it doesn't exist
+            if (!await roleManager.RoleExistsAsync("Manager"))
             {
-                var roleExist = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
-                {
-                    await roleManager.CreateAsync(new IdentityRole(roleName));
-                }
+                await roleManager.CreateAsync(new IdentityRole("Manager"));
+            }
+
+            // Create Teacher role if it doesn't exist
+            if (!await roleManager.RoleExistsAsync("Teacher"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Teacher"));
+            }
+
+            // Create Student role if it doesn't exist
+            if (!await roleManager.RoleExistsAsync("Student"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Student"));
+            }
+
+            // Create Admin role if it doesn't exist
+            if (!await roleManager.RoleExistsAsync("Admin"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Admin"));
             }
 
             // Create default admin user
@@ -143,12 +157,8 @@ namespace Demo03
                     Email = "admin@example.com",
                     EmailConfirmed = true
                 };
-
-                var result = await userManager.CreateAsync(admin, "Admin@123");
-                if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(admin, "Admin");
-                }
+                await userManager.CreateAsync(admin, "Admin123!");
+                await userManager.AddToRoleAsync(admin, "Admin");
             }
         }
     }
