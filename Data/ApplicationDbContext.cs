@@ -114,6 +114,7 @@ namespace Demo03.Data
 
         private void SeedUserRole(ModelBuilder builder)
         {
+            var hasher = new PasswordHasher<IdentityUser>();
 
             var studentAccount = new IdentityUser
             {
@@ -125,13 +126,13 @@ namespace Demo03.Data
                 EmailConfirmed = true
             };
 
-            var employerAccount = new IdentityUser
+            var managerAccount = new IdentityUser
             {
                 Id = "user2",
-                UserName = "employer@gmail.com",
-                Email = "employer@gmail.com",
-                NormalizedUserName = "EMPLOYER@GMAIL.COM",
-                NormalizedEmail = "EMPLOYER@GMAIL.COM",
+                UserName = "manager@gmail.com",
+                Email = "manager@gmail.com",
+                NormalizedUserName = "MANAGER@GMAIL.COM",
+                NormalizedEmail = "MANAGER@GMAIL.COM",
                 EmailConfirmed = true
             };
 
@@ -147,19 +148,18 @@ namespace Demo03.Data
 
             // Hash passwords
             studentAccount.PasswordHash = hasher.HashPassword(studentAccount, "123456");
-            employerAccount.PasswordHash = hasher.HashPassword(employerAccount, "123456");
+            managerAccount.PasswordHash = hasher.HashPassword(managerAccount, "123456");
             teacherAccount.PasswordHash = hasher.HashPassword(teacherAccount, "123456");
 
             // Add users to database
             builder.Entity<IdentityUser>().HasData(
                 studentAccount,
-                employerAccount,
+                managerAccount,
                 teacherAccount
             );
 
             // Define roles
             builder.Entity<IdentityRole>().HasData(
-
                 new IdentityRole
                 {
                     Id = "role1",
@@ -168,15 +168,15 @@ namespace Demo03.Data
                 },
                 new IdentityRole
                 {
-                    Id = "role3",
-                    Name = "Teacher",
-                    NormalizedName = "TEACHER"
+                    Id = "role2",
+                    Name = "Manager",
+                    NormalizedName = "MANAGER"
                 },
                 new IdentityRole
                 {
-                    Id = "role2",
-                    Name = "Employer",
-                    NormalizedName = "EMPLOYER"
+                    Id = "role3",
+                    Name = "Teacher",
+                    NormalizedName = "TEACHER"
                 }
             );
 
@@ -190,7 +190,7 @@ namespace Demo03.Data
                 new IdentityUserRole<string>
                 {
                     UserId = "user2",
-                    RoleId = "role2"  // Employer
+                    RoleId = "role2"  // Manager
                 },
                 new IdentityUserRole<string>
                 {

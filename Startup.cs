@@ -48,9 +48,6 @@ namespace Demo03
                 options.FallbackPolicy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build();
-
-                options.AddPolicy("RequireAdminRole", policy => 
-                    policy.RequireRole("Admin"));
                 
                 options.AddPolicy("RequireManagerRole", policy => 
                     policy.RequireRole("Manager"));

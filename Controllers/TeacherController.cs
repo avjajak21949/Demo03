@@ -24,7 +24,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher
-        [Authorize(Policy = "TeacherOrManagerPolicy")]
+        [Authorize(Policy = "Manager")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -49,7 +49,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Details/5
-        [Authorize(Policy = "TeacherOrManagerPolicy")]
+        [Authorize(Policy = "Manager")]
         public async Task<IActionResult> Details(string id)
         {
             if (id == null)
