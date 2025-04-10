@@ -61,8 +61,6 @@ namespace Demo03.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
-            [Display(Name = "Role")]
-            public string Role { get; set; }
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -70,6 +68,7 @@ namespace Demo03.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
+
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
@@ -82,6 +81,9 @@ namespace Demo03.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
+                    // Automatically assign Manager role
+                    await _userManager.AddToRoleAsync(user, "Manager");
+
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
@@ -90,11 +92,10 @@ namespace Demo03.Areas.Identity.Pages.Account
                         values: new { area = "Identity", userId = user.Id, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _userManager.AddToRoleAsync(user, Input.Role);
                     var emailSubject = "Welcome to E-Learning - Confirm Your Email";
                     var emailBody = $@"
                         <h2>Welcome to E-Learning!</h2>
-                        <p>Thank you for registering. Please confirm your email by clicking the link below:</p>
+                        <p>Thank you for registering as a Manager. Please confirm your email by clicking the link below:</p>
                         <p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Click here to confirm your email</a></p>
                         <p>After confirming your email, you can start using all features of our platform.</p>
                         <p>Best regards,<br>E-Learning Team</p>";
@@ -116,9 +117,7 @@ namespace Demo03.Areas.Identity.Pages.Account
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
-            // If we got this far, something failed, redisplay form
             return Page();
         }
-
     }
 }
