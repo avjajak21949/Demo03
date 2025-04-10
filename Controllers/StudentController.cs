@@ -161,6 +161,10 @@ namespace Demo03.Controllers
             {
                 return NotFound();
             }
+            
+            // Remove password validation for edit
+            ModelState.Remove("Password");
+            
             return View(student);
         }
 
@@ -168,12 +172,15 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Email,Password")] Student student)
+        public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Email,StudentNumber,Department")] Student studentUpdate)
         {
-            if (id != student.Id)
+            if (id != studentUpdate.Id)
             {
                 return NotFound();
             }
+            
+            // Remove password validation for edit
+            ModelState.Remove("Password");
 
             if (ModelState.IsValid)
             {
@@ -185,21 +192,17 @@ namespace Demo03.Controllers
                         return NotFound();
                     }
 
-                    existingStudent.FullName = student.FullName;
-                    existingStudent.Email = student.Email;
-                    existingStudent.UserName = student.Email;
-
-                    if (!string.IsNullOrEmpty(student.Password))
-                    {
-                        var token = await _userManager.GeneratePasswordResetTokenAsync(existingStudent);
-                        await _userManager.ResetPasswordAsync(existingStudent, token, student.Password);
-                    }
+                    existingStudent.FullName = studentUpdate.FullName;
+                    existingStudent.Email = studentUpdate.Email;
+                    existingStudent.UserName = studentUpdate.Email;
+                    existingStudent.StudentNumber = studentUpdate.StudentNumber;
+                    existingStudent.Department = studentUpdate.Department;
 
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!StudentExists(student.Id))
+                    if (!StudentExists(studentUpdate.Id))
                     {
                         return NotFound();
                     }
@@ -208,9 +211,15 @@ namespace Demo03.Controllers
                         throw;
                     }
                 }
+                catch (Exception ex)
+                {
+                    // Log error
+                    ModelState.AddModelError(string.Empty, "An error occurred while updating the student: " + ex.Message);
+                    return View(studentUpdate);
+                }
                 return RedirectToAction(nameof(Index));
             }
-            return View(student);
+            return View(studentUpdate);
         }
 
         // GET: Student/Delete/5
@@ -239,10 +248,34 @@ namespace Demo03.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            var student = await _context.Students.FindAsync(id);
-            _context.Students.Remove(student);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var student = await _context.Students.FindAsync(id);
+                if (student == null)
+                {
+                    return NotFound();
+                }
+
+                // Find any Comments related to this student
+                var relatedComments = await _context.Comments.Where(c => c.UserID == id).ToListAsync();
+                
+                // Delete all related comments first
+                _context.Comments.RemoveRange(relatedComments);
+                
+                // Then delete the student
+                _context.Students.Remove(student);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                ModelState.AddModelError(string.Empty, "An error occurred while deleting the student: " + ex.Message);
+                var student = await _context.Students
+                    .Include(s => s.StudentClasses)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+                return View(student);
+            }
         }
 
         private bool StudentExists(string id)

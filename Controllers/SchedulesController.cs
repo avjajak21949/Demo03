@@ -162,6 +162,7 @@ namespace Demo03.Controllers
 
             var schedule = await _context.Schedules
                 .Include(s => s.Class)
+                    .ThenInclude(c => c.Course)
                 .FirstOrDefaultAsync(m => m.ScheduleID == id);
             if (schedule == null)
             {
@@ -177,7 +178,15 @@ namespace Demo03.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var schedule = await _context.Schedules.FindAsync(id);
+            var schedule = await _context.Schedules
+                .Include(s => s.Class)
+                .FirstOrDefaultAsync(m => m.ScheduleID == id);
+                
+            if (schedule == null)
+            {
+                return NotFound();
+            }
+            
             _context.Schedules.Remove(schedule);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

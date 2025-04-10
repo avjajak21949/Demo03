@@ -4,6 +4,7 @@ using Demo03.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Demo03.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250410224440_FixTeacherDeletion")]
+    partial class FixTeacherDeletion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -549,15 +552,15 @@ namespace Demo03.Migrations
                         {
                             Id = "user1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "5a5b636e-9e74-4f85-b5d2-616971342e28",
+                            ConcurrencyStamp = "ba247fc2-0801-40d9-89af-099fbd5e42d3",
                             Email = "student@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "STUDENT@GMAIL.COM",
                             NormalizedUserName = "STUDENT@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPdvqfUhzkTDH4hkEk539KvpMMGf7+52VhpQfZOCgj+nHDFUNPgRuZdlBJv79T84xg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOATrJNJrZduFbVXI5ntifkLv3EYGm5mm7xpb+T/afAymHoDOalA6Z6SEZCw6ESKnw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "d7d8a240-51c9-48f2-861d-33b154569bbf",
+                            SecurityStamp = "e2b9b1d3-b7b6-40b7-9e3b-8ca7b93d5925",
                             TwoFactorEnabled = false,
                             UserName = "student@gmail.com"
                         },
@@ -565,15 +568,15 @@ namespace Demo03.Migrations
                         {
                             Id = "user2",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "1697bb52-e4de-4fcb-bf7d-60442fc3e30a",
+                            ConcurrencyStamp = "16fa962b-60de-456c-b899-ac8fd5150175",
                             Email = "manager@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "MANAGER@GMAIL.COM",
                             NormalizedUserName = "MANAGER@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEC4BEmAdyVq/AWfeUQZAymQPuU13aWUbf8WEqEByIfBlXpcUVrUkCVAoOTR+bnQJ8w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDyiHWHlr0ay+wuVav7RBuiM2c/7jS5yI+O3PZHFS1A8W2VnHa6ItwGvDMhhmm0Ukw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "6078c49f-ab24-4b67-9e26-bac3b724a8a1",
+                            SecurityStamp = "ebef189f-2694-4ba8-aa9f-8ade9d761f88",
                             TwoFactorEnabled = false,
                             UserName = "manager@gmail.com"
                         },
@@ -581,15 +584,15 @@ namespace Demo03.Migrations
                         {
                             Id = "user3",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "cc2c36c2-3ec2-4899-a976-b8590e743572",
+                            ConcurrencyStamp = "dba61248-fa69-47b0-b771-7cd8edbe9c5d",
                             Email = "teacher@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "TEACHER@GMAIL.COM",
                             NormalizedUserName = "TEACHER@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIvpg3X9InTp7KQRg2pdWtcnWwIpxUsqmPptWlbXAn6t0/vGDO2BedDNqXE5VfIN0g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOjZX3pyhGgEL53OYMh77xoVnybzoWlz6Qw8Ym5YHy4A51+SmxA7Sek1lT8Vx0NinA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "b6463c51-c623-46f4-a248-f4410b96eec1",
+                            SecurityStamp = "02c65458-954f-4229-a45f-2692bf2a5081",
                             TwoFactorEnabled = false,
                             UserName = "teacher@gmail.com"
                         });
