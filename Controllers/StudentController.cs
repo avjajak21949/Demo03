@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Demo03.Models;
 using Demo03.Data;
 using Microsoft.AspNetCore.Authorization;
+using Demo03.Services;
 
 namespace Demo03.Controllers
 {
@@ -16,11 +17,16 @@ namespace Demo03.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IEmailService _emailService;
 
-        public StudentController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public StudentController(
+            ApplicationDbContext context, 
+            UserManager<IdentityUser> userManager,
+            IEmailService emailService)
         {
             _context = context;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         // GET: Student
@@ -108,6 +114,21 @@ namespace Demo03.Controllers
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(student, "Student");
+
+                    // Send welcome email to the student
+                    var subject = "Welcome to Our E-Learning Platform";
+                    var body = $@"
+                        <h2>Welcome {student.FullName}!</h2>
+                        <p>Your account has been created successfully.</p>
+                        <p>Here are your login credentials:</p>
+                        <ul>
+                            <li>Email: {student.Email}</li>
+                            <li>Password: {student.Password}</li>
+                        </ul>
+                        <p>Please login at <a href='https://localhost:5001'>https://localhost:5001</a> and change your password.</p>";
+
+                    await _emailService.SendEmailAsync(student.Email, subject, body);
+
                     return RedirectToAction(nameof(Index));
                 }
                 foreach (var error in result.Errors)
