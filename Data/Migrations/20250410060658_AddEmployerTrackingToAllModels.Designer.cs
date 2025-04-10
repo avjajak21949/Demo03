@@ -4,6 +4,7 @@ using Demo03.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Demo03.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250410060658_AddEmployerTrackingToAllModels")]
+    partial class AddEmployerTrackingToAllModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,8 +163,8 @@ namespace Demo03.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("CreatedByEmployerId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<string>("CreatedByManagerId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CreditHours")
                         .HasColumnType("int");
@@ -171,10 +174,8 @@ namespace Demo03.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("Duration")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("ManagerId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -196,7 +197,7 @@ namespace Demo03.Data.Migrations
 
                     b.HasIndex("CategoryID");
 
-                    b.HasIndex("CreatedByEmployerId");
+                    b.HasIndex("ManagerId");
 
                     b.ToTable("Courses");
                 });
@@ -534,15 +535,15 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user0",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "9e485716-2722-4e52-afd5-9fe2eae7fc99",
+                            ConcurrencyStamp = "50e03010-a604-4097-acfe-340c72214b8d",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEVh5vYhrG59eG4xrQHb+DP9QZ2yK8brmem57PMvrXLku5GhGCe78+T8bPPterZucA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECVfIkhSFKFpPEvCJxAXNU8YLWjUqx9ZzsvE/DAzSnp0iE8B6sDXgd0t6GfwE+/ovg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "1bc98494-1445-48f5-ac0c-aba3c79eaa04",
+                            SecurityStamp = "ba71c489-b8fb-430c-b9e9-2065a8c71e5b",
                             TwoFactorEnabled = false,
                             UserName = "admin@gmail.com"
                         },
@@ -550,15 +551,15 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user1",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "4ef2a4a8-358f-41ce-b071-c9df10c01782",
+                            ConcurrencyStamp = "e948995a-8a13-4f54-8aa8-52ba3d4b87a7",
                             Email = "student@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "STUDENT@GMAIL.COM",
                             NormalizedUserName = "STUDENT@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEInd2SUprMmuWiFubkG7Xlhfd4R+ZLMgFuTzg+XfM0nG511Dh9QRHdgYFi51ovz83A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPLXQIIRoAWmhxtmYRmK1qbg3g2ZlQMqjKvMczeG7iYOskZZvIeAcAzpu1wq/J7VbQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "e9f17961-bbce-4529-a464-ad00c1289012",
+                            SecurityStamp = "d65c786e-d1e6-4fa8-823b-e2571f3d08f8",
                             TwoFactorEnabled = false,
                             UserName = "student@gmail.com"
                         },
@@ -566,15 +567,15 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user2",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "22b1c26b-c503-4e4d-91e3-08cf68403e1d",
+                            ConcurrencyStamp = "7eb53f83-5056-43a6-9ac4-49651eb2f3f0",
                             Email = "employer@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "EMPLOYER@GMAIL.COM",
                             NormalizedUserName = "EMPLOYER@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPNkD9neJpn4HkWTMqibuIff2iF64tWcK1T8krDPyoKOXYSyN0jMmzFbYGSOHlPJ9w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKq7xaYW5rYtwSox5cemMq9ZTLZ2WrAnwRLpXtuR9SQJnpgLy2xNjL8Im2tDJE0qsA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "04846c9c-9508-431d-8d18-fec6c134f6c1",
+                            SecurityStamp = "2e32754d-85ab-49a4-8c48-88c60c4fcd85",
                             TwoFactorEnabled = false,
                             UserName = "employer@gmail.com"
                         },
@@ -582,15 +583,15 @@ namespace Demo03.Data.Migrations
                         {
                             Id = "user3",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "509ae34a-b13e-478c-967a-62e87502bfd7",
+                            ConcurrencyStamp = "77cf1d13-6b89-40fe-862c-12c541aed95a",
                             Email = "teacher@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "TEACHER@GMAIL.COM",
                             NormalizedUserName = "TEACHER@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOrR+HpAIfcLKuCR5+EPvcf6TaBvuaZuZgLxCuR6ddSXFwby4Xb6lkHZ1v1TX7vLTA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBSzA5tRMgsldD64uOB/znU/OklH6oIlavV1ZvM72ICuADv5XG3QGDZWoDNJawzTBw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4843c99b-2b2c-4bc8-8535-40ba6b9bd82b",
+                            SecurityStamp = "5334ea29-a1e2-45ea-97c8-5637941669a7",
                             TwoFactorEnabled = false,
                             UserName = "teacher@gmail.com"
                         });
@@ -707,9 +708,6 @@ namespace Demo03.Data.Migrations
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
 
-                    b.Property<string>("CreatedByEmployerId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Department")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -730,13 +728,8 @@ namespace Demo03.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.HasIndex("CreatedByEmployerId");
-
                     b.ToTable("AspNetUsers", t =>
                         {
-                            t.Property("CreatedByEmployerId")
-                                .HasColumnName("Student_CreatedByEmployerId");
-
                             t.Property("Department")
                                 .HasColumnName("Student_Department");
 
@@ -753,9 +746,6 @@ namespace Demo03.Data.Migrations
             modelBuilder.Entity("Demo03.Models.Teacher", b =>
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
-
-                    b.Property<int?>("CourseID")
-                        .HasColumnType("int");
 
                     b.Property<string>("CreatedByEmployerId")
                         .HasColumnType("nvarchar(450)");
@@ -779,8 +769,6 @@ namespace Demo03.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.HasIndex("CourseID");
 
                     b.HasIndex("CreatedByEmployerId");
 
@@ -839,13 +827,13 @@ namespace Demo03.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Employer")
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Manager")
                         .WithMany()
-                        .HasForeignKey("CreatedByEmployerId");
+                        .HasForeignKey("ManagerId");
 
                     b.Navigation("Category");
 
-                    b.Navigation("Employer");
+                    b.Navigation("Manager");
                 });
 
             modelBuilder.Entity("Demo03.Models.Document", b =>
@@ -980,21 +968,8 @@ namespace Demo03.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Demo03.Models.Student", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Employer")
-                        .WithMany()
-                        .HasForeignKey("CreatedByEmployerId");
-
-                    b.Navigation("Employer");
-                });
-
             modelBuilder.Entity("Demo03.Models.Teacher", b =>
                 {
-                    b.HasOne("Demo03.Models.Course", null)
-                        .WithMany("Teachers")
-                        .HasForeignKey("CourseID");
-
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Employer")
                         .WithMany()
                         .HasForeignKey("CreatedByEmployerId");
@@ -1019,8 +994,6 @@ namespace Demo03.Data.Migrations
             modelBuilder.Entity("Demo03.Models.Course", b =>
                 {
                     b.Navigation("Classes");
-
-                    b.Navigation("Teachers");
                 });
 
             modelBuilder.Entity("Demo03.Models.Student", b =>

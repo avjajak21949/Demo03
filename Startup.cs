@@ -15,6 +15,10 @@ using Microsoft.Extensions.Hosting;
 using Demo03.Services;
 using Microsoft.AspNetCore.SignalR;
 using Demo03.Hubs;
+using Demo03.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Demo03.Authorization;
 
 namespace Demo03
 {
@@ -56,24 +60,46 @@ namespace Demo03
             services.AddControllersWithViews();
             services.AddRazorPages();
             
+            // Add authorization policies
+            services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+
+                options.AddPolicy("AdminPolicy", policy =>
+                    policy.RequireRole("Admin"));
+
+                options.AddPolicy("ManagerPolicy", policy =>
+                    policy.RequireRole("Manager"));
+
+                options.AddPolicy("TeacherPolicy", policy =>
+                    policy.RequireRole("Teacher"));
+
+                options.AddPolicy("StudentPolicy", policy =>
+                    policy.RequireRole("Student"));
+            });
+            
             // Add SignalR
             services.AddSignalR();
             
             // Add CORS
             services.AddCors(options =>
             {
-                options.AddDefaultPolicy(builder =>
-                {
-                    builder.WithOrigins("https://localhost:5001", "http://localhost:5000")
-                           .AllowAnyHeader()
-                           .AllowAnyMethod()
-                           .AllowCredentials();
-                });
+                options.AddPolicy("CorsPolicy", builder => builder
+                    .WithOrigins("http://localhost:4200")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
             });
+
+            services.AddScoped<IAuthorizationHandler, ContactIsOwnerAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, ContactAdministratorsAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, ContactManagerAuthorizationHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -92,7 +118,7 @@ namespace Demo03
             app.UseRouting();
             
             // Use CORS
-            app.UseCors();
+            app.UseCors("CorsPolicy");
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -107,48 +133,41 @@ namespace Demo03
                 // Add SignalR hub endpoint
                 endpoints.MapHub<ChatHub>("/chatHub");
             });
+
+            // Create roles
+            CreateRoles(serviceProvider).Wait();
         }
         
-        private async Task SeedAdminUser(IApplicationBuilder app)
+        private async Task CreateRoles(IServiceProvider serviceProvider)
         {
-            using (var serviceScope = app.ApplicationServices.CreateScope())
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            string[] roleNames = { "Admin", "Manager", "Teacher", "Student" };
+            
+            foreach (var roleName in roleNames)
             {
-                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-                var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-                // Thông tin tài khoản admin cần thêm
-                var adminEmail = "admin@gmail.com";
-                var adminPassword = "Anderson210402@";
-
-                // Kiểm tra xem tài khoản admin đã tồn tại chưa
-                var adminUser = await userManager.FindByEmailAsync(adminEmail);
-                if (adminUser == null)
+                var roleExist = await roleManager.RoleExistsAsync(roleName);
+                if (!roleExist)
                 {
-                    // Tạo tài khoản admin
-                    var newAdmin = new IdentityUser
-                    {
-                        Id = "+a6s2da+s62da+s62da+s62da+s6d2as+6d2s+3fdg2+",
-                        UserName = adminEmail,
-                        Email = adminEmail,
-                        NormalizedUserName = adminEmail.ToUpper(),
-                        NormalizedEmail = adminEmail.ToUpper(),
-                        EmailConfirmed = true // Nếu bạn muốn xác nhận email
-                    };
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
 
-                    // Thay đổi password nếu cần
-                    var createAdminResult = await userManager.CreateAsync(newAdmin, adminPassword);
+            // Create default admin user
+            var adminUser = await userManager.FindByEmailAsync("admin@example.com");
+            if (adminUser == null)
+            {
+                var admin = new IdentityUser
+                {
+                    UserName = "admin@example.com",
+                    Email = "admin@example.com",
+                    EmailConfirmed = true
+                };
 
-                    if (createAdminResult.Succeeded)
-                    {
-                        // Gán vai trò admin cho tài khoản
-                        await userManager.AddToRoleAsync(newAdmin, "Adminstator");
-                    }
-                    else
-                    {
-                        // Xử lý lỗi nếu có
-                        var errors = string.Join(", ", createAdminResult.Errors.Select(e => e.Description));
-                        throw new Exception($"Failed to create admin user: {errors}");
-                    }
+                var result = await userManager.CreateAsync(admin, "Admin@123");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(admin, "Admin");
                 }
             }
         }

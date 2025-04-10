@@ -81,8 +81,8 @@ namespace Demo03.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    // Automatically assign Manager role
-                    await _userManager.AddToRoleAsync(user, "Manager");
+                    // Add user to Employer role
+                    await _userManager.AddToRoleAsync(user, "Employer");
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -95,7 +95,7 @@ namespace Demo03.Areas.Identity.Pages.Account
                     var emailSubject = "Welcome to E-Learning - Confirm Your Email";
                     var emailBody = $@"
                         <h2>Welcome to E-Learning!</h2>
-                        <p>Thank you for registering as a Manager. Please confirm your email by clicking the link below:</p>
+                        <p>Thank you for registering as an Employer. Please confirm your email by clicking the link below:</p>
                         <p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Click here to confirm your email</a></p>
                         <p>After confirming your email, you can start using all features of our platform.</p>
                         <p>Best regards,<br>E-Learning Team</p>";

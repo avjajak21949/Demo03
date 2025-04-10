@@ -27,25 +27,24 @@ namespace Demo03.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            if (userRoles.Contains("Student"))
+            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            
+            IQueryable<Student> studentsQuery = _context.Students
+                .Include(s => s.StudentClasses)
+                    .ThenInclude(sc => sc.Class)
+                        .ThenInclude(c => c.Course);
+            
+            if (isEmployer)
             {
-                var student = await _context.Students
-                    .Include(s => s.StudentClasses)
-                        .ThenInclude(sc => sc.Class)
-                            .ThenInclude(c => c.Course)
-                    .FirstOrDefaultAsync(s => s.Id == user.Id);
-
-                if (student == null)
-                {
-                    return NotFound();
-                }
-
-                return View(student);
+                studentsQuery = studentsQuery.Where(s => s.CreatedByEmployerId == user.Id);
             }
-
-            return View(await _context.Students.ToListAsync());
+            else if (await _userManager.IsInRoleAsync(user, "Student"))
+            {
+                studentsQuery = studentsQuery.Where(s => s.Id == user.Id);
+            }
+            
+            var students = await studentsQuery.ToListAsync();
+            return View(students);
         }
 
         // GET: Student/Details/5
@@ -56,6 +55,9 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            
             var student = await _context.Students
                 .Include(s => s.StudentClasses)
                     .ThenInclude(sc => sc.Class)
@@ -67,11 +69,16 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            if (isEmployer && student.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             return View(student);
         }
 
         // GET: Student/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public IActionResult Create()
         {
             return View();
@@ -80,21 +87,22 @@ namespace Demo03.Controllers
         // POST: Student/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Create([Bind("FullName,StudentNumber,Department,Password,Email")] Student student)
         {
             if (ModelState.IsValid)
             {
+                var user = await _userManager.GetUserAsync(User);
+                student.CreatedByEmployerId = user.Id;
                 student.UserName = student.Email;
                 student.EmailConfirmed = true;
-                var result = await _userManager.CreateAsync(student, student.Password);
                 
+                var result = await _userManager.CreateAsync(student, student.Password);
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(student, "Student");
                     return RedirectToAction(nameof(Index));
                 }
-                
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
@@ -104,7 +112,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Edit/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -112,18 +120,26 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
             var student = await _context.Students.FindAsync(id);
+            
             if (student == null)
             {
                 return NotFound();
             }
+
+            if (student.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             return View(student);
         }
 
         // POST: Student/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,StudentNumber,Department,Email")] Student student)
         {
             if (id != student.Id)
@@ -131,11 +147,17 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var existingStudent = await _context.Students.FindAsync(id);
+            if (existingStudent.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var existingStudent = await _context.Students.FindAsync(id);
                     existingStudent.FullName = student.FullName;
                     existingStudent.StudentNumber = student.StudentNumber;
                     existingStudent.Department = student.Department;
@@ -161,7 +183,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Student/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -169,11 +191,18 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
             var student = await _context.Students
                 .FirstOrDefaultAsync(m => m.Id == id);
+            
             if (student == null)
             {
                 return NotFound();
+            }
+
+            if (student.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
             }
 
             return View(student);
@@ -182,10 +211,17 @@ namespace Demo03.Controllers
         // POST: Student/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
+            var user = await _userManager.GetUserAsync(User);
             var student = await _context.Students.FindAsync(id);
+            
+            if (student.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             _context.Students.Remove(student);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

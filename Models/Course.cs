@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using Microsoft.AspNetCore.Identity;
 namespace Demo03.Models
 {
     public class Course
@@ -10,6 +10,7 @@ namespace Demo03.Models
         public Course()
         {
             Classes = new HashSet<Class>();
+            Teachers = new HashSet<Teacher>();
         }
 
         [Key]
@@ -56,11 +57,23 @@ namespace Demo03.Models
         public decimal Price { get; set; }
 
         [Required]
+        [StringLength(50)]
+        [Display(Name = "Duration")]
+        public string Duration { get; set; }
+
+        [Required]
         [ForeignKey("Category")]
         [Display(Name = "Category")]
         public int CategoryID { get; set; }
 
         public virtual Category Category { get; set; }
+        
+        public string CreatedByEmployerId { get; set; }
+        
+        [ForeignKey("CreatedByEmployerId")]
+        public IdentityUser Employer { get; set; }
+        
         public virtual ICollection<Class> Classes { get; set; }
+        public virtual ICollection<Teacher> Teachers { get; set; }
     }
 }

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Demo03.Data;
 using Demo03.Models;
+using Demo03.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 
@@ -15,11 +15,13 @@ namespace Demo03.Controllers
     [Authorize]
     public class CoursesController : Controller
     {
+        private readonly UserManager<IdentityUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<CoursesController> _logger;
 
-        public CoursesController(ApplicationDbContext context, ILogger<CoursesController> logger)
+        public CoursesController(UserManager<IdentityUser> userManager, ApplicationDbContext context, ILogger<CoursesController> logger)
         {
+            _userManager = userManager;
             _context = context;
             _logger = logger;
         }
@@ -27,9 +29,19 @@ namespace Demo03.Controllers
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var courses = await _context.Courses
-                .Include(c => c.Category)
-                .ToListAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            
+            IQueryable<Course> coursesQuery = _context.Courses
+                .Include(c => c.Classes)
+                .Include(c => c.Teachers);
+            
+            if (isEmployer)
+            {
+                coursesQuery = coursesQuery.Where(c => c.CreatedByEmployerId == user.Id);
+            }
+            
+            var courses = await coursesQuery.ToListAsync();
             return View(courses);
         }
 
@@ -41,23 +53,31 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            
             var course = await _context.Courses
-                .Include(c => c.Category)
-                .FirstOrDefaultAsync(m => m.CourseID == id);
+                .Include(c => c.Classes)
+                .Include(c => c.Teachers)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (course == null)
             {
                 return NotFound();
             }
 
+            if (isEmployer && course.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             return View(course);
         }
 
         // GET: Courses/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public IActionResult Create()
         {
-            ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name");
             return View();
         }
 
@@ -65,43 +85,22 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> Create([Bind("Name,Description,CourseCode,CreditHours,Place,Time,Price,CategoryID")] Course course)
+        public async Task<IActionResult> Create([Bind("Name,Description,Duration,Price")] Course course)
         {
-            try
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
-                {
-                    _logger.LogInformation($"Creating course: {course.Name} ({course.CourseCode})");
-                    _context.Add(course);
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Course created successfully with ID: {course.CourseID}");
-                    return RedirectToAction(nameof(Index));
-                }
-
-                // Log validation errors
-                foreach (var modelState in ModelState.Values)
-                {
-                    foreach (var error in modelState.Errors)
-                    {
-                        _logger.LogWarning($"Validation error: {error.ErrorMessage}");
-                    }
-                }
-
-                // If we got this far, something failed, redisplay form
-                ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name", course.CategoryID);
-                return View(course);
+                var user = await _userManager.GetUserAsync(User);
+                course.CreatedByEmployerId = user.Id;
+                
+                _context.Add(course);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error creating course: {ex.Message}");
-                ModelState.AddModelError("", "An error occurred while creating the course. Please try again.");
-                ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name", course.CategoryID);
-                return View(course);
-            }
+            return View(course);
         }
 
         // GET: Courses/Edit/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -109,19 +108,19 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses
-                .Include(c => c.Category)
-                .FirstOrDefaultAsync(m => m.CourseID == id);
-
+            var user = await _userManager.GetUserAsync(User);
+            var course = await _context.Courses.FindAsync(id);
+            
             if (course == null)
             {
                 return NotFound();
             }
 
-            // Add debugging information
-            System.Diagnostics.Debug.WriteLine($"Loading course: ID={course.CourseID}, Name={course.Name}, Code={course.CourseCode}");
+            if (course.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
 
-            ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name", course.CategoryID);
             return View(course);
         }
 
@@ -129,26 +128,34 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> Edit(int id, [Bind("CourseID,Name,Description,CourseCode,CreditHours,Place,Time,Price,CategoryID")] Course course)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Duration,Price")] Course course)
         {
-            if (id != course.CourseID)
+            if (id != course.Id)
             {
                 return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            var existingCourse = await _context.Courses.FindAsync(id);
+            if (existingCourse.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _logger.LogInformation($"Updating course: {course.Name} ({course.CourseCode})");
-                    _context.Update(course);
+                    existingCourse.Name = course.Name;
+                    existingCourse.Description = course.Description;
+                    existingCourse.Duration = course.Duration;
+                    existingCourse.Price = course.Price;
+
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Course updated successfully");
-                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CourseExists(course.CourseID))
+                    if (!CourseExists(course.Id))
                     {
                         return NotFound();
                     }
@@ -157,23 +164,13 @@ namespace Demo03.Controllers
                         throw;
                     }
                 }
+                return RedirectToAction(nameof(Index));
             }
-
-            // Log validation errors
-            foreach (var modelState in ModelState.Values)
-            {
-                foreach (var error in modelState.Errors)
-                {
-                    _logger.LogWarning($"Validation error: {error.ErrorMessage}");
-                }
-            }
-
-            ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "Name", course.CategoryID);
             return View(course);
         }
 
         // GET: Courses/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -181,13 +178,18 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
             var course = await _context.Courses
-                .Include(c => c.Category)
-                .FirstOrDefaultAsync(m => m.CourseID == id);
-
+                .FirstOrDefaultAsync(m => m.Id == id);
+            
             if (course == null)
             {
                 return NotFound();
+            }
+
+            if (course.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
             }
 
             return View(course);
@@ -196,10 +198,17 @@ namespace Demo03.Controllers
         // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var user = await _userManager.GetUserAsync(User);
             var course = await _context.Courses.FindAsync(id);
+            
+            if (course.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             _context.Courses.Remove(course);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -207,7 +216,7 @@ namespace Demo03.Controllers
 
         private bool CourseExists(int id)
         {
-            return _context.Courses.Any(e => e.CourseID == id);
+            return _context.Courses.Any(e => e.Id == id);
         }
     }
 }

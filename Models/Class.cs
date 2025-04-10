@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 
 namespace Demo03.Models
 {
@@ -29,6 +30,11 @@ namespace Demo03.Models
 
         [Required]
         public int MaxCapacity { get; set; } = 30;
+
+        public string CreatedByEmployerId { get; set; }
+
+        [ForeignKey("CreatedByEmployerId")]
+        public IdentityUser Employer { get; set; }
 
         public virtual ICollection<Schedule> Schedules { get; set; }
         public virtual ICollection<Meeting> Meetings { get; set; }

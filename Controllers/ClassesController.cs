@@ -28,16 +28,18 @@ namespace Demo03.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var classes = await _context.Classes
+            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            
+            IQueryable<Class> classesQuery = _context.Classes
                 .Include(c => c.Course)
-                .Include(c => c.Teacher)
-                .ToListAsync();
-
-            if (User.IsInRole("Teacher"))
+                .Include(c => c.Teacher);
+            
+            if (isEmployer)
             {
-                classes = classes.Where(c => c.TeacherId == user.Id).ToList();
+                classesQuery = classesQuery.Where(c => c.CreatedByEmployerId == user.Id);
             }
-
+            
+            var classes = await classesQuery.ToListAsync();
             return View(classes);
         }
 
@@ -66,35 +68,36 @@ namespace Demo03.Controllers
         }
 
         // GET: Classes/Create
-        [Authorize(Roles = "Administrator,Employer")]
-        public async Task<IActionResult> Create()
+        [Authorize(Roles = "Employer")]
+        public IActionResult Create()
         {
-            ViewData["CourseID"] = new SelectList(_context.Courses, "CourseID", "Name");
-            var teachers = await _userManager.GetUsersInRoleAsync("Teacher");
-            ViewData["TeacherId"] = new SelectList(teachers, "Id", "UserName");
+            ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name");
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "FullName");
             return View();
         }
 
         // POST: Classes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
-        public async Task<IActionResult> Create([Bind("ClassID,CourseID,TeacherId,Name,ScheduleInfo,MaxCapacity")] Class @class)
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> Create([Bind("Name,ScheduleInfo,MaxCapacity,CourseID,TeacherId")] Class @class)
         {
             if (ModelState.IsValid)
             {
+                var user = await _userManager.GetUserAsync(User);
+                @class.CreatedByEmployerId = user.Id;
+                
                 _context.Add(@class);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CourseID"] = new SelectList(_context.Courses, "CourseID", "Name", @class.CourseID);
-            var teachers = await _userManager.GetUsersInRoleAsync("Teacher");
-            ViewData["TeacherId"] = new SelectList(teachers, "Id", "UserName", @class.TeacherId);
+            ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name", @class.CourseID);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "FullName", @class.TeacherId);
             return View(@class);
         }
 
         // GET: Classes/Edit/5
-        [Authorize(Roles = "Administrator,Employer,Teacher")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -102,33 +105,32 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
             var @class = await _context.Classes
                 .Include(c => c.Course)
                 .Include(c => c.Teacher)
                 .FirstOrDefaultAsync(m => m.ClassID == id);
-                
+
             if (@class == null)
             {
                 return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
-            if (User.IsInRole("Teacher") && @class.TeacherId != user.Id)
+            if (@class.CreatedByEmployerId != user.Id)
             {
                 return Forbid();
             }
 
-            ViewData["CourseID"] = new SelectList(_context.Courses, "CourseID", "Name", @class.CourseID);
-            var teachers = await _userManager.GetUsersInRoleAsync("Teacher");
-            ViewData["TeacherId"] = new SelectList(teachers, "Id", "UserName", @class.TeacherId);
+            ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name", @class.CourseID);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "FullName", @class.TeacherId);
             return View(@class);
         }
 
         // POST: Classes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer,Teacher")]
-        public async Task<IActionResult> Edit(int id, [Bind("ClassID,CourseID,TeacherId,Name,ScheduleInfo,MaxCapacity")] Class @class)
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> Edit(int id, [Bind("ClassID,Name,ScheduleInfo,MaxCapacity,CourseID,TeacherId")] Class @class)
         {
             if (id != @class.ClassID)
             {
@@ -136,25 +138,10 @@ namespace Demo03.Controllers
             }
 
             var user = await _userManager.GetUserAsync(User);
-            if (User.IsInRole("Teacher") && @class.TeacherId != user.Id)
+            var existingClass = await _context.Classes.FindAsync(id);
+            if (existingClass.CreatedByEmployerId != user.Id)
             {
                 return Forbid();
-            }
-
-            // Add debugging information
-            foreach (var modelState in ModelState.Values)
-            {
-                foreach (var error in modelState.Errors)
-                {
-                    // Log the error message
-                    System.Diagnostics.Debug.WriteLine($"Model Error: {error.ErrorMessage}");
-                }
-            }
-
-            // Ensure MaxCapacity is set
-            if (@class.MaxCapacity <= 0)
-            {
-                @class.MaxCapacity = 30; // Default value
             }
 
             if (ModelState.IsValid)
@@ -177,14 +164,13 @@ namespace Demo03.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CourseID"] = new SelectList(_context.Courses, "CourseID", "Name", @class.CourseID);
-            var teachers = await _userManager.GetUsersInRoleAsync("Teacher");
-            ViewData["TeacherId"] = new SelectList(teachers, "Id", "UserName", @class.TeacherId);
+            ViewData["CourseID"] = new SelectList(_context.Courses, "Id", "Name", @class.CourseID);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "FullName", @class.TeacherId);
             return View(@class);
         }
 
         // GET: Classes/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -192,6 +178,7 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
             var @class = await _context.Classes
                 .Include(c => c.Course)
                 .Include(c => c.Teacher)
@@ -202,16 +189,28 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            if (@class.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             return View(@class);
         }
 
         // POST: Classes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var user = await _userManager.GetUserAsync(User);
             var @class = await _context.Classes.FindAsync(id);
+            
+            if (@class.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             _context.Classes.Remove(@class);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

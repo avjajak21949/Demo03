@@ -28,6 +28,10 @@ namespace Demo03.Models
         [Display(Name = "Password")]
         public string Password { get; set; }
 
+        public string CreatedByEmployerId { get; set; }
+        [ForeignKey("CreatedByEmployerId")]
+        public IdentityUser Employer { get; set; }
+
         // Navigation properties
         public virtual ICollection<StudentClass> StudentClasses { get; set; }
 

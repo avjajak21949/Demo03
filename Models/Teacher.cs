@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 namespace Demo03.Models
@@ -26,6 +27,11 @@ namespace Demo03.Models
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string Password { get; set; }
+
+        public string CreatedByEmployerId { get; set; }
+
+        [ForeignKey("CreatedByEmployerId")]
+        public IdentityUser Employer { get; set; }
 
         // Navigation properties
         public virtual ICollection<Class> Classes { get; set; }

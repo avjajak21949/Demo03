@@ -26,7 +26,25 @@ namespace Demo03.Controllers
         // GET: Teacher
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Teachers.ToListAsync());
+            var user = await _userManager.GetUserAsync(User);
+            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            
+            IQueryable<Teacher> teachersQuery = _context.Teachers
+                .Include(t => t.Classes)
+                .Include(t => t.Meetings)
+                .Include(t => t.Documents);
+            
+            if (isEmployer)
+            {
+                teachersQuery = teachersQuery.Where(t => t.CreatedByEmployerId == user.Id);
+            }
+            else if (await _userManager.IsInRoleAsync(user, "Teacher"))
+            {
+                teachersQuery = teachersQuery.Where(t => t.Id == user.Id);
+            }
+            
+            var teachers = await teachersQuery.ToListAsync();
+            return View(teachers);
         }
 
         // GET: Teacher/Details/5
@@ -37,6 +55,9 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var isEmployer = await _userManager.IsInRoleAsync(user, "Employer");
+            
             var teacher = await _context.Teachers
                 .Include(t => t.Classes)
                 .Include(t => t.Meetings)
@@ -48,11 +69,16 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            if (isEmployer && teacher.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             return View(teacher);
         }
 
         // GET: Teacher/Create
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public IActionResult Create()
         {
             return View();
@@ -61,21 +87,22 @@ namespace Demo03.Controllers
         // POST: Teacher/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Create([Bind("FullName,Department,Specialization,Password,Email")] Teacher teacher)
         {
             if (ModelState.IsValid)
             {
+                var user = await _userManager.GetUserAsync(User);
+                teacher.CreatedByEmployerId = user.Id;
                 teacher.UserName = teacher.Email;
                 teacher.EmailConfirmed = true;
-                var result = await _userManager.CreateAsync(teacher, teacher.Password);
                 
+                var result = await _userManager.CreateAsync(teacher, teacher.Password);
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(teacher, "Teacher");
                     return RedirectToAction(nameof(Index));
                 }
-                
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
@@ -85,7 +112,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Edit/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -93,18 +120,26 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
             var teacher = await _context.Teachers.FindAsync(id);
+            
             if (teacher == null)
             {
                 return NotFound();
             }
+
+            if (teacher.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             return View(teacher);
         }
 
         // POST: Teacher/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Edit(string id, [Bind("Id,FullName,Department,Specialization,Email")] Teacher teacher)
         {
             if (id != teacher.Id)
@@ -112,11 +147,17 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var existingTeacher = await _context.Teachers.FindAsync(id);
+            if (existingTeacher.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var existingTeacher = await _context.Teachers.FindAsync(id);
                     existingTeacher.FullName = teacher.FullName;
                     existingTeacher.Department = teacher.Department;
                     existingTeacher.Specialization = teacher.Specialization;
@@ -142,7 +183,7 @@ namespace Demo03.Controllers
         }
 
         // GET: Teacher/Delete/5
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -150,11 +191,18 @@ namespace Demo03.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.GetUserAsync(User);
             var teacher = await _context.Teachers
                 .FirstOrDefaultAsync(m => m.Id == id);
+            
             if (teacher == null)
             {
                 return NotFound();
+            }
+
+            if (teacher.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
             }
 
             return View(teacher);
@@ -163,10 +211,17 @@ namespace Demo03.Controllers
         // POST: Teacher/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Employer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
+            var user = await _userManager.GetUserAsync(User);
             var teacher = await _context.Teachers.FindAsync(id);
+            
+            if (teacher.CreatedByEmployerId != user.Id)
+            {
+                return Forbid();
+            }
+
             _context.Teachers.Remove(teacher);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
