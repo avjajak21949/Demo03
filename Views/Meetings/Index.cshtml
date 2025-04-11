@@ -55,7 +55,7 @@
                                 <a asp-action="Details" asp-route-id="@item.MeetingID" class="btn btn-sm btn-info">
                                     <i class="fas fa-info-circle"></i>
                                 </a>
-                                @if (User.IsInRole("Teacher") && item.HostUserId == User.Identity.Name)
+                                @if (User.IsInRole("Student, Teacher, Manager") && item.HostUserId == User.Identity.Name)
                                 {
                                     <a asp-action="Edit" asp-route-id="@item.MeetingID" class="btn btn-sm btn-warning">
                                         <i class="fas fa-edit"></i>

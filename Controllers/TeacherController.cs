@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Demo03.Models;
 using Demo03.Data;
 using Microsoft.AspNetCore.Authorization;
+using Demo03.Services;
 
 namespace Demo03.Controllers
 {
@@ -16,11 +17,16 @@ namespace Demo03.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public TeacherController(UserManager<IdentityUser> userManager, ApplicationDbContext context)
+        public TeacherController(
+            UserManager<IdentityUser> userManager, 
+            ApplicationDbContext context,
+            IEmailService emailService)
         {
             _userManager = userManager;
             _context = context;
+            _emailService = emailService;
         }
 
         // GET: Teacher
@@ -103,6 +109,22 @@ namespace Demo03.Controllers
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(teacher, "Teacher");
+                    
+                    // Send welcome email to the teacher
+                    var subject = "Welcome to Our E-Learning Platform";
+                    var body = $@"
+                        <h2>Welcome {teacher.FullName}!</h2>
+                        <p>Your teacher account has been created successfully.</p>
+                        <p>Here are your login credentials:</p>
+                        <ul>
+                            <li>Email: {teacher.Email}</li>
+                            <li>Password: {teacher.Password}</li>
+                        </ul>
+                        <p>Please login at <a href='https://localhost:5001'>https://localhost:5001</a> and change your password.</p>
+                        <p>As a teacher, you can manage classes, create materials, and interact with students.</p>";
+
+                    await _emailService.SendEmailAsync(teacher.Email, subject, body);
+                    
                     return RedirectToAction(nameof(Index));
                 }
                 foreach (var error in result.Errors)

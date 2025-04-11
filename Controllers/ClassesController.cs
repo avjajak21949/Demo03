@@ -9,6 +9,7 @@ using Demo03.Data;
 using Demo03.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Demo03.Services;
 
 namespace Demo03.Controllers
 {
@@ -17,11 +18,16 @@ namespace Demo03.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IEmailService _emailService;
 
-        public ClassesController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public ClassesController(
+            ApplicationDbContext context, 
+            UserManager<IdentityUser> userManager,
+            IEmailService emailService)
         {
             _context = context;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         // GET: Classes
@@ -106,7 +112,7 @@ namespace Demo03.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> Create([Bind("Name,CourseID,TeacherId,StartDate,EndDate,ScheduleInfo,MaxCapacity")] Class @class)
+        public async Task<IActionResult> Create([Bind("Name,CourseID,TeacherId,ScheduleInfo,MaxCapacity")] Class @class)
         {
             if (ModelState.IsValid)
             {
@@ -121,6 +127,32 @@ namespace Demo03.Controllers
                 
                 _context.Add(@class);
                 await _context.SaveChangesAsync();
+
+                // Send notification to the assigned teacher
+                if (!string.IsNullOrEmpty(@class.TeacherId))
+                {
+                    var teacher = await _context.Teachers.FindAsync(@class.TeacherId);
+                    var course = await _context.Courses.FindAsync(@class.CourseID);
+                    
+                    if (teacher != null && course != null)
+                    {
+                        var subject = $"You've Been Assigned to a New Class: {@class.Name}";
+                        var body = $@"
+                            <h2>Hello {teacher.FullName},</h2>
+                            <p>You have been assigned to teach a new class:</p>
+                            <ul>
+                                <li><strong>Class Name:</strong> {@class.Name}</li>
+                                <li><strong>Course:</strong> {course.Name}</li>
+                                <li><strong>Schedule Information:</strong> {@class.ScheduleInfo ?? "Not specified"}</li>
+                                <li><strong>Maximum Capacity:</strong> {@class.MaxCapacity} students</li>
+                            </ul>
+                            <p>Please login to <a href='https://localhost:5001'>our platform</a> to view more details and prepare your class materials.</p>
+                            <p>Thank you for your dedication to teaching!</p>";
+
+                        await _emailService.SendEmailAsync(teacher.Email, subject, body);
+                    }
+                }
+                
                 return RedirectToAction(nameof(Index));
             }
             
@@ -172,12 +204,36 @@ namespace Demo03.Controllers
             {
                 try
                 {
-                    // Get the original class to preserve certain values
+                    // Get the original class to preserve certain values and check if teacher changed
                     var originalClass = await _context.Classes.AsNoTracking().FirstOrDefaultAsync(c => c.ClassID == id);
                     if (originalClass != null)
                     {
                         // Preserve the CreatedByEmployerId
                         @class.CreatedByEmployerId = originalClass.CreatedByEmployerId;
+                        
+                        // Check if teacher has changed
+                        if (originalClass.TeacherId != @class.TeacherId && !string.IsNullOrEmpty(@class.TeacherId))
+                        {
+                            var teacher = await _context.Teachers.FindAsync(@class.TeacherId);
+                            var course = await _context.Courses.FindAsync(@class.CourseID);
+                            
+                            if (teacher != null && course != null)
+                            {
+                                var subject = $"You've Been Assigned to Class: {@class.Name}";
+                                var body = $@"
+                                    <h2>Hello {teacher.FullName},</h2>
+                                    <p>You have been assigned to teach the following class:</p>
+                                    <ul>
+                                        <li><strong>Class Name:</strong> {@class.Name}</li>
+                                        <li><strong>Course:</strong> {course.Name}</li>
+                                        <li><strong>Schedule Information:</strong> {@class.ScheduleInfo ?? "Not specified"}</li>
+                                    </ul>
+                                    <p>Please login to <a href='https://localhost:5001'>our platform</a> to view more details and prepare your class materials.</p>
+                                    <p>Thank you for your dedication to teaching!</p>";
+
+                                await _emailService.SendEmailAsync(teacher.Email, subject, body);
+                            }
+                        }
                     }
 
                     _context.Update(@class);
@@ -198,17 +254,7 @@ namespace Demo03.Controllers
                 catch (Exception ex)
                 {
                     // Log the exception
-                    Console.WriteLine($"Error updating class: {ex.Message}");
-                    ModelState.AddModelError("", $"Unable to save changes: {ex.Message}");
-                }
-            }
-
-            // Log validation errors
-            foreach (var state in ModelState)
-            {
-                if (state.Value.Errors.Count > 0)
-                {
-                    Console.WriteLine($"Field {state.Key} has errors: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
+                    ModelState.AddModelError(string.Empty, $"An error occurred: {ex.Message}");
                 }
             }
 
